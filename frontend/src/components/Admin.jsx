@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 function Admin() {
     const [blogs, setBlogs] = useState([]);
     const [message, setmessage] = useState("");
@@ -8,7 +11,7 @@ function Admin() {
         const skip = isLoadMore ? blogs.length : 0;
        const limit =5;
 
-        await axios.get(`http://localhost:5003/pendingblog?skip=${skip}`)
+        await axios.get(`${API_URL}/pendingblog?skip=${skip}`)
             .then(res => {
                 if (Array.isArray(res.data)) {
                     if (isLoadMore) {
@@ -36,7 +39,7 @@ function Admin() {
 
     }
     const verify = (id) => {
-        axios.post("http://localhost:5003/verify", { id })
+        axios.post(`${API_URL}/verify`, { id })
             .then(res => {
                alert(res.data.message)
 
@@ -54,7 +57,7 @@ function Admin() {
 
     }
     const reject = (id) => {
-        axios.post("http://localhost:5003/reject", { id })
+        axios.post(`${API_URL}/reject`, { id })
             .then(res => {
                alert(res.data.message);
                 setBlogs(prevBlogs =>

@@ -2,6 +2,8 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 
 function Profile() {
     const name = localStorage.getItem("name");
@@ -12,7 +14,7 @@ function Profile() {
     const [likes, setlikes] = useState([]);
     const[commentblog , setcommentblog] = useState([]);
     const getprofile = async () => {
-        await axios.post("http://localhost:5003/getprofile", { name })
+        await axios.post(`${API_URL}/getprofile`, { name })
             .then(res => {
                 setblogcunt(res.data.blogcount);
                 setvericunt(res.data.vericount);
@@ -42,7 +44,7 @@ const totalcomments = blogs.reduce(
 
 
     const like = (id) => {
-        axios.post("http://localhost:5003/like", { id })
+        axios.post(`${API_URL}/like`, { id })
             .then(res => {
                 // Update local state to show new like count immediately
                 setBlogs(prevBlogs => prevBlogs.map(blog =>

@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 function Fullblog() {
     const { id } = useParams();
     const [blog, setBlog] = useState(null);
@@ -12,7 +15,7 @@ function Fullblog() {
     const fetchBlog = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`http://localhost:5003/blogs/${id}`);
+            const res = await axios.get(`${API_URL}/blogs/${id}`);
             setBlog(res.data);
             setcomments(res.data.comments || []);
         } catch (err) {
@@ -24,7 +27,7 @@ function Fullblog() {
         }
     };
     const handlecomments = async () => {
-        await axios.post("http://localhost:5003/comments", { comment, id , name})
+        await axios.post(`${API_URL}/comments`, { comment, id , name})
             .then(res => {
                 setcomments(res.data.comments);
                 setcomment("");

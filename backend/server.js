@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -6,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 const connectdb = () => {
-    mongoose.connect("mongodb://localhost:27017/challange");
+    mongoose.connect(process.env.MONGO_URI);
     console.log("mongo connected")
 }
 connectdb();
@@ -32,7 +33,7 @@ const BlogSchema = new mongoose.Schema({
 });
 const Blog = mongoose.model("Blog", BlogSchema);
 
-const JWT_SECRET = "your_secret_key_here";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 app.get("/", (req, res) => {
     res.send("backed is running");
@@ -291,6 +292,7 @@ app.post("/getprofile", async (req, res) => {
 
 
 
-app.listen(5003, () => {
-    console.log(`Server running on port 5003`);
+const PORT = process.env.PORT || 5003;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });

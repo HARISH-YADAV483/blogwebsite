@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import axios from 'axios'
 
 
+const API_URL = import.meta.env.VITE_API_URL;
 
 function Home() {
     const [blogs, setBlogs] = useState([]);
@@ -41,7 +42,7 @@ function Home() {
     }
     const handleregister = (e) => {
         e.preventDefault();
-        axios.post("http://localhost:5003/regi", formdata)
+        axios.post(`${API_URL}/regi`, formdata)
             .then(res => {
                 setmessage(res.data.message);
             })
@@ -56,7 +57,7 @@ function Home() {
 
     const handlelogin = (e) => {
         e.preventDefault();
-        axios.post("http://localhost:5003/logi", formdata)
+        axios.post(`${API_URL}/logi`, formdata)
             .then(res => {
                 setmessage(res.data.message);
                 if (res.data.token) {
@@ -81,7 +82,7 @@ function Home() {
 
 
     const handleLogout = () => {
-        axios.post("http://localhost:5003/logout")
+        axios.post(`${API_URL}/logout`)
             .then(res => {
                 setmessage(res.data.message);
                 setToken(null);
@@ -106,7 +107,7 @@ function Home() {
     const handlewriteb = (e) => {
         e.preventDefault();
         setwrite(false);
-        axios.post("http://localhost:5003/blog", blogdata)
+        axios.post(`${API_URL}/blog`, blogdata)
             .then(res => {
                 setmessage(res.data.message);
             })
@@ -119,7 +120,7 @@ function Home() {
         const skip = isLoadMore ? blogs.length : 0;
         const limit = 5;
 
-        await axios.get(`http://localhost:5003/verified?skip=${skip}`)
+        await axios.get(`${API_URL}/verified?skip=${skip}`)
             .then(res => {
                 if (Array.isArray(res.data)) {
                     if (isLoadMore) {
@@ -147,7 +148,7 @@ function Home() {
 
     }
     const like = (id) => {
-        axios.post("http://localhost:5003/like", { id , name})
+        axios.post(`${API_URL}/like`, { id , name})
             .then(res => {
                 setmessage(res.data.message);
                 // Update local state to show new like count immediately
