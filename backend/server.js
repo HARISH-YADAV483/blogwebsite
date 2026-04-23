@@ -4,6 +4,12 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const { Resend } = require("resend");
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(
+
+  process.env.CLIENT_API_KEY
+
+);
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 
@@ -47,6 +53,69 @@ app.get("/", (req, res) => {
 let otpStorage = {};
 
 
+////verification with google.....////
+
+app.post("/verifygoogle", async (req, res) => {
+
+  try {
+
+    const { credential } = req.body;
+
+    const ticket = await client.verifyIdToken({
+
+      idToken: credential,
+
+      audience: process.env.CLIENT_API_KEY,
+
+    });
+
+    const payload = ticket.getPayload();
+
+    if (!payload.email_verified) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message: "Email not verified"
+
+      });
+
+    }
+    const email= payload.email;
+    const user  =  await User.findOne({email});
+    if(user){
+        res.json({
+             success: false,
+
+      message : "an account already exist with this email"
+        })
+    }
+else{
+    res.json({
+
+      success: true,
+
+      email: payload.email,
+
+      message : "email verified successfullt !!!"
+
+    });}
+
+  } catch (error) {
+
+    res.status(400).json({
+
+      success: false,
+
+      message: "Google verification failed"
+
+    });
+
+  }
+
+});
+
 
 
 function generateOTP() {
@@ -64,17 +133,23 @@ app.post("/sendotp", async (req, res) => {
   try {
 
     const { email } = req.body;
+    
+    
 
     if (!email) {
 
-      return res.status(400).json({
+      return res.json({
 
-        success: false,
+     
 
         message: "Email is required",
 
       });
 
+    }
+    const user = await User.findOne({ email });
+    if (user) {
+        return res.json({ message: "an account with this email already exist" });
     }
 
     const otp = generateOTP();
@@ -104,11 +179,11 @@ app.post("/sendotp", async (req, res) => {
 
     res.json({
 
-      success: true,
+    
 
       message: "OTP sent successfully",
 
-      otp // remove in production
+    
 
     });
 
@@ -118,7 +193,7 @@ app.post("/sendotp", async (req, res) => {
 
     res.status(500).json({
 
-      success: false,
+      
 
       message: "Failed to send OTP",
 
@@ -138,89 +213,13 @@ app.post("/verifyotp", (req, res) => {
 });
 
 
-//send otp
-
-
-
-// let storedOTP = "";
-
-// const transporter = nodemailer.createTransport({
-
-//   service: "gmail",
-
-//   auth: {
-
-//     user: "yourgmail@gmail.com",
-
-//     pass: "your_app_password"
-
-//   }
-
-// });
-
-// app.post("/sendotp", async (req, res) => {
-
-//   const { email } = req.body;
-
-//   storedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-
-//   const mailOptions = {
-
-//     from: "harishpuhaniya@gmail.com",
-
-//     to: email,
-
-//     subject: "Your OTP Code",
-
-//     text: `Your OTP is: ${storedOTP}`
-
-//   };
-
-//   try {
-
-//     await transporter.sendMail(mailOptions);
-
-//     res.json({ message: "OTP sent successfully" });
-
-//   } catch (error) {
-
-//     console.log(error);
-
-//     res.status(500).json({ message: "Failed to send OTP" });
-
-//   }
-
-// });
-
-// app.post("/verifyotp", (req, res) => {
-
-//   const { otp } = req.body;
-
-//   if (otp === storedOTP) {
-
-//     res.json({ message: "OTP verified successfully" });
-
-//   } else {
-
-//     res.status(400).json({ message: "Invalid OTP" });
-
-//   }
-
-// });
-
-// app.listen(5000, () => {
-
-//   console.log("Server running on port 5000");
-
-// });
-
 
 //registration
 app.post("/regi", async (req, res) => {
     const { name, pass, email } = req.body;
     const exist = await User.findOne({ name });
     if (exist) {
-        res.json({ message: "user already exist " })
+        res.json({ message: "username already exist " })
     }
     else {
         const newUser = new User({ name, pass, email, role: "user" });
@@ -233,7 +232,7 @@ app.post("/logi", async (req, res) => {
     const { name, pass } = req.body;
     const exist = await User.findOne({ name });
     if (!exist) {
-        res.json({ message: "user doesnt exist   " })
+        res.json({ message: "  such username doesnt exist   " })
     }
     else {
         const passw = exist.pass;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom";
-
+import { GoogleLogin } from "@react-oauth/google";
 
 import axios from 'axios'
 
@@ -52,7 +52,7 @@ function Home() {
 const sendotp = async() =>{
 await axios.post(`${API_URL}/sendotp` , {email})
 .then(res =>{
-    alert(res.data.message);
+    setmessage(res.data.message);
 })
 .catch(err=>{
     console.error(err);
@@ -71,6 +71,43 @@ const verifyotp = async() =>{
         alert("Invalid OTP");
     })
 }
+
+
+///// verification with google ........
+
+const handleGoogleSuccess = async (credentialResponse) => {
+
+    try {
+
+      const res = await axios.post(
+
+        `${API_URL}/verifygoogle`,
+
+        {
+
+          credential: credentialResponse.credential,
+
+        }
+
+      );
+      setmessage(res.data.message);
+
+      if (res.data.success) {
+
+        setemail(res.data.email);
+       
+        setisverified(true);
+
+      }
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
+
+  };
+
 
     const handleregister = (e) => {
         e.preventDefault();
@@ -215,6 +252,16 @@ const verifyotp = async() =>{
                             setotp(e.target.value);
                         }} />
                         <button onClick={verifyotp}>verify otp</button>
+
+                        <h1>or verufy your email with google</h1>
+                        <GoogleLogin
+
+            onSuccess={handleGoogleSuccess}
+
+            onError={() => console.log("Google Login Failed")}
+
+          />
+
                     </>) : (<form onSubmit={handleregister} method="post">
                         <input type="text" name="name" placeholder="usermame" onChange={handleChange} value={formdata.name} />
                         <input type="text" name="pass" placeholder="create password" onChange={handleChange} value={formdata.pass} />
