@@ -11,7 +11,7 @@ function Home() {
     const [blogs, setBlogs] = useState([]);
 
     const [hasMore, setHasMore] = useState(true);
-
+const [image, setimage] = useState(null);
     const [message, setmessage] = useState(null);
     const [write, setwrite] = useState(false);
     const [role, setrole] = useState(localStorage.getItem("role") || "");
@@ -44,6 +44,44 @@ function Home() {
         setblogdata(prev => ({ ...prev, [name]: value }));
     }
 
+    ///uplpad image
+
+    const[loading , setLoading] = useState(null);
+    const uploadImage = async () => {
+
+    const data = new FormData();
+
+    data.append("file", image);
+
+    data.append("upload_preset", "blogchit_images"); // Cloudinary preset
+
+    data.append("cloud_name", "dqs0mesoe");
+
+    try {
+
+      setLoading(true);
+
+      const res = await axios.post(
+
+        "https://api.cloudinary.com/v1_1/dqs0mesoe/image/upload",
+
+        data
+
+      );
+
+      setLoading(false);
+
+      return res.data.secure_url;
+
+    } catch (error) {
+
+      setLoading(false);
+
+      console.log(error);
+
+    }
+
+  };
 
     //////
     /////
@@ -109,9 +147,24 @@ const handleGoogleSuccess = async (credentialResponse) => {
   };
 
 
-    const handleregister = (e) => {
+    const handleregister = async(e) => {
         e.preventDefault();
-        axios.post(`${API_URL}/regi`, { ...formdata, email })
+let imageUrl = "";
+
+    if (image) {
+
+      imageUrl = await uploadImage();
+
+    }
+      const updatedformData = {
+
+    ...formdata,
+
+    image: imageUrl
+
+  };
+
+        axios.post(`${API_URL}/regi`, { ...updatedformData, email })
             .then(res => {
                 setmessage(res.data.message);
             })
@@ -161,6 +214,9 @@ const handleGoogleSuccess = async (credentialResponse) => {
                 setmessage("Logout failed");
             });
     };
+
+    ///blogs
+
     const handleright = () => {
         setwrite(true);
     }
@@ -168,12 +224,28 @@ const handleGoogleSuccess = async (credentialResponse) => {
         title: '',
         subtitle: '',
         content: '',
-        author: localStorage.getItem("name")
+        author: localStorage.getItem("name"),
+        image: ''
     });
-    const handlewriteb = (e) => {
+    
+    const handlewriteb = async (e) => {
         e.preventDefault();
+        let imageUrl = "";
+
+    if (image) {
+
+      imageUrl = await uploadImage();
+
+    }
+      const updatedBlogData = {
+
+    ...blogdata,
+
+    image: imageUrl
+
+  };
         setwrite(false);
-        axios.post(`${API_URL}/blog`, blogdata)
+        axios.post(`${API_URL}/blog`, updatedBlogData)
             .then(res => {
                 setmessage(res.data.message);
             })
@@ -265,7 +337,8 @@ const handleGoogleSuccess = async (credentialResponse) => {
                     </>) : (<form onSubmit={handleregister} method="post">
                         <input type="text" name="name" placeholder="usermame" onChange={handleChange} value={formdata.name} />
                         <input type="text" name="pass" placeholder="create password" onChange={handleChange} value={formdata.pass} />
-                        <button type="submit">register</button>
+                        <input type="file" accept="image/*"  onChange={(e) => setimage(e.target.files[0])}  />
+                        <button type="submit">{loading ? "Uploading..." : "register"}</button>
                     </form>)}
 
 
@@ -295,12 +368,29 @@ const handleGoogleSuccess = async (credentialResponse) => {
                                 <input type="text" name="title" value={blogdata.title} onChange={handlChange} />
                                 <input type="text" name="subtitle" value={blogdata.subtitle} onChange={handlChange} />
                                 <input type="text" name="content" value={blogdata.content} onChange={handlChange} />
-                                <button type="submit">submitblog</button>
+                                 <input
+
+        type="file"
+
+        accept="image/*"
+
+        onChange={(e) => setimage(e.target.files[0])}
+
+      />
+                                <button type="submit">
+
+        {loading ? "Uploading..." : "Create Blog"}
+
+      </button>
                             </form>
                         </div>)}
                     </div>
                     {blogs.map((blog) => (
                         <div key={blog._id} className="blog-card">
+   {blog.image && (
+  <img src={blog.image} alt="" style={{width:"300px" , height:"auto"}} />
+)}
+
                             {blog.title}
                             <br />
                             {blog.subtitle}

@@ -13,6 +13,7 @@ function Profile() {
     const [blogs, setBlogs] = useState([]);
     const [likes, setlikes] = useState([]);
     const[commentblog , setcommentblog] = useState([]);
+    const [image , setimage] = useState("");
     const getprofile = async () => {
         await axios.post(`${API_URL}/getprofile`, { name })
             .then(res => {
@@ -21,6 +22,7 @@ function Profile() {
                 setBlogs(res.data.veriblogs);
                 setlikes(res.data.liked || []);
                 setcommentblog(res.data.commented || []);
+                setimage(res.data.image);
             })
             .catch(err => {
                 console.error(err);
@@ -62,6 +64,9 @@ const totalcomments = blogs.reduce(
     return (
         <>
             <h1>{name}</h1>
+            {image && (
+  <img src={image} alt="" style={{width:"300px" , height:"auto"}} />
+)}
             no. of blogs submitted : {blogcount}
             verified: {vericount}
             <h2>yours blog : </h2>

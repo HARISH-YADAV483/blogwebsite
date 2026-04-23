@@ -28,7 +28,8 @@ const UserSchema = new mongoose.Schema({
     email: String,
     role: String,
     blogliked: Array,
-    blogcommented: Array
+    blogcommented: Array,
+    image: String
 });
 const User = mongoose.model("User", UserSchema);
 
@@ -40,7 +41,8 @@ const BlogSchema = new mongoose.Schema({
     author: String,
     likes: Number,
     comments : Array,
-    views: Number
+    views: Number,
+    image : String
 });
 const Blog = mongoose.model("Blog", BlogSchema);
 
@@ -216,13 +218,13 @@ app.post("/verifyotp", (req, res) => {
 
 //registration
 app.post("/regi", async (req, res) => {
-    const { name, pass, email } = req.body;
+    const { name, pass, email , image } = req.body;
     const exist = await User.findOne({ name });
     if (exist) {
         res.json({ message: "username already exist " })
     }
     else {
-        const newUser = new User({ name, pass, email, role: "user" });
+        const newUser = new User({ name, pass, email, role: "user" , image });
         await newUser.save();
         res.json({ message: "registration successful...." });
     }
@@ -260,8 +262,8 @@ app.post("/logout", (req, res) => {
 
 //create
 app.post("/blog", async (req, res) => {
-    const { title, subtitle, content, author } = req.body;
-    const newBlog = new Blog({ title, subtitle, content, status: "Pending", author, likes: 0 });
+    const { title, subtitle, content, author , image } = req.body;
+    const newBlog = new Blog({ title, subtitle, content, status: "Pending", author, likes: 0 , image });
     await newBlog.save();
     res.json({ message: "blog submission  successful...." });
 
@@ -447,6 +449,7 @@ app.post("/getprofile", async (req, res) => {
         const user = await User.findOne({ name: name })
         const liked = user.blogliked || [];
         const commented = user.blogcommented || [];
+        const image = user.image || "";
 
         res.status(200).json({
 
@@ -454,7 +457,8 @@ app.post("/getprofile", async (req, res) => {
             vericount,
             veriblogs,
             liked,
-            commented
+            commented,
+            image
 
         });
 

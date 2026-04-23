@@ -80,6 +80,9 @@ function Admin() {
 
             {blogs.map((blog) => (
                 <div key={blog._id} className="blog-card">
+   {blog.image && (
+  <img src={blog.image} alt="" style={{width:"300px" , height:"auto"}} />
+)}
                     {blog.title}
                     <br />
                     {blog.subtitle}
@@ -92,6 +95,7 @@ function Admin() {
                     <button onClick={() => verify(blog._id)}>
                         verify ✅
                     </button>
+                    <hr />
                 </div>))}
 
 
