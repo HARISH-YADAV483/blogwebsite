@@ -3,6 +3,10 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
+const { Resend } = require("resend");
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -15,6 +19,7 @@ connectdb();
 const UserSchema = new mongoose.Schema({
     name: String,
     pass: String,
+    email: String,
     role: String,
     blogliked: Array,
     blogcommented: Array
@@ -39,14 +44,186 @@ app.get("/", (req, res) => {
     res.send("backed is running");
 })
 
+let otpStorage = {};
+
+
+
+
+function generateOTP() {
+
+  return Math.floor(
+
+    100000 + Math.random() * 900000
+
+  ).toString();
+
+}
+
+app.post("/sendotp", async (req, res) => {
+
+  try {
+
+    const { email } = req.body;
+
+    if (!email) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message: "Email is required",
+
+      });
+
+    }
+
+    const otp = generateOTP();
+    otpStorage[email] = otp;
+
+    await resend.emails.send({
+
+      from: "otp@harishpuhaniya.online",
+
+      to: email,
+
+      subject: "Your Verification Code",
+
+      html: `
+
+        <div style="font-family: Arial;">
+
+          <h2>Your OTP is: ${otp}</h2>
+
+          <p>This OTP expires in 5 minutes.</p>
+
+        </div>
+
+      `,
+
+    });
+
+    res.json({
+
+      success: true,
+
+      message: "OTP sent successfully",
+
+      otp // remove in production
+
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+
+      success: false,
+
+      message: "Failed to send OTP",
+
+    });
+
+  }
+
+});
+
+app.post("/verifyotp", (req, res) => {
+  const { email, otp } = req.body;
+  if (otpStorage[email] === otp) {
+    res.json({ success: true, message: "OTP verified successfully" });
+  } else {
+    res.status(400).json({ success: false, message: "Invalid OTP" });
+  }
+});
+
+
+//send otp
+
+
+
+// let storedOTP = "";
+
+// const transporter = nodemailer.createTransport({
+
+//   service: "gmail",
+
+//   auth: {
+
+//     user: "yourgmail@gmail.com",
+
+//     pass: "your_app_password"
+
+//   }
+
+// });
+
+// app.post("/sendotp", async (req, res) => {
+
+//   const { email } = req.body;
+
+//   storedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+
+//   const mailOptions = {
+
+//     from: "harishpuhaniya@gmail.com",
+
+//     to: email,
+
+//     subject: "Your OTP Code",
+
+//     text: `Your OTP is: ${storedOTP}`
+
+//   };
+
+//   try {
+
+//     await transporter.sendMail(mailOptions);
+
+//     res.json({ message: "OTP sent successfully" });
+
+//   } catch (error) {
+
+//     console.log(error);
+
+//     res.status(500).json({ message: "Failed to send OTP" });
+
+//   }
+
+// });
+
+// app.post("/verifyotp", (req, res) => {
+
+//   const { otp } = req.body;
+
+//   if (otp === storedOTP) {
+
+//     res.json({ message: "OTP verified successfully" });
+
+//   } else {
+
+//     res.status(400).json({ message: "Invalid OTP" });
+
+//   }
+
+// });
+
+// app.listen(5000, () => {
+
+//   console.log("Server running on port 5000");
+
+// });
+
+
+//registration
 app.post("/regi", async (req, res) => {
-    const { name, pass } = req.body;
+    const { name, pass, email } = req.body;
     const exist = await User.findOne({ name });
     if (exist) {
         res.json({ message: "user already exist " })
     }
     else {
-        const newUser = new User({ name, pass, role: "user" });
+        const newUser = new User({ name, pass, email, role: "user" });
         await newUser.save();
         res.json({ message: "registration successful...." });
     }
