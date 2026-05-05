@@ -2,18 +2,28 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
+import { io } from 'socket.io-client';
+
 const API_URL = import.meta.env.VITE_API_URL;
+const socket = io("http://localhost:5003");
 
 
 function Profile() {
     const name = localStorage.getItem("name");
+    const userId = localStorage.getItem("userId");
 
     const [blogcount, setblogcunt] = useState("");
     const [vericount, setvericunt] = useState("");
     const [blogs, setBlogs] = useState([]);
     const [likes, setlikes] = useState([]);
-    const[commentblog , setcommentblog] = useState([]);
-    const [image , setimage] = useState("");
+    const [commentblog, setcommentblog] = useState([]);
+    const [image, setimage] = useState("");
+    const [notifications, setNotifications] = useState([]);
+    const [followers, setfollowers] = useState([]);
+    const [following, setfollowing] = useState([]);
+    const [showFollowers, setShowFollowers] = useState(false);
+    const [showFollowing, setShowFollowing] = useState(false);
+    
     const getprofile = async () => {
         await axios.post(`${API_URL}/getprofile`, { name })
             .then(res => {
@@ -23,6 +33,8 @@ function Profile() {
                 setlikes(res.data.liked || []);
                 setcommentblog(res.data.commented || []);
                 setimage(res.data.image);
+                setfollowers(res.data.followers || []);
+                setfollowing(res.data.following || []);
             })
             .catch(err => {
                 console.error(err);
@@ -34,15 +46,16 @@ function Profile() {
 
     }
 
+
     //calculations....
-   const totalviews = blogs.reduce((sum, blog) => sum + (blog.views || 0), 0);
+    const totalviews = blogs.reduce((sum, blog) => sum + (blog.views || 0), 0);
 
-const totallikes = blogs.reduce((sum, blog) => sum + (blog.likes || 0), 0);
+    const totallikes = blogs.reduce((sum, blog) => sum + (blog.likes || 0), 0);
 
-const totalcomments = blogs.reduce(
-    (sum, blog) => sum + (blog.comments?.length || 0),
-    0
-);
+    const totalcomments = blogs.reduce(
+        (sum, blog) => sum + (blog.comments?.length || 0),
+        0
+    );
 
 
     const like = (id) => {
@@ -59,16 +72,106 @@ const totalcomments = blogs.reduce(
             })
 
     }
+    const getnoti = async () => {
+        await axios.get(`${API_URL}/notifications/${userId}`)
+            .then(res => {
+                setNotifications(res.data);
 
-    useEffect(() => { getprofile(); }, []);
-    return (
-        <>
-            <h1>{name}</h1>
-            {image && (
-  <img src={image} alt="" style={{width:"300px" , height:"auto"}} />
-)}
+            })
+            .catch(err => {
+                console.error("Error fetching notifs:", err);
+                console.log("unable to fetch notiis ");
+            });
+    }
+    useEffect(() => {
+        getprofile();
+
+        if (name) {
+            socket.emit("setup_user", name);
+
+
+        }
+
+        const handleNewNotification = (newNotif) => {
+            setNotifications(prev => [newNotif, ...prev]);
+
+        };
+
+        socket.on("receive_notification", handleNewNotification);
+
+        return () => {
+            socket.off("receive_notification", handleNewNotification);
+        };
+
+    }, [name]);
+    useEffect(() => {
+        getprofile();
+
+
+
+    }, []);
+    return (<>
+        
+        <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto", fontFamily: "'Inter', sans-serif" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+                <div>
+                    <h1>{name}</h1>
+                    {image && (
+                        <img src={image} alt="" style={{ width: "150px", height: "150px", borderRadius: "50%", objectFit: "cover", marginBottom: "15px" }} />
+                    )}
+                </div>
+            </div>
             no. of blogs submitted : {blogcount}
             verified: {vericount}
+
+            {/* Followers / Following counts */}
+            <div style={{ display: "flex", gap: "20px", margin: "15px 0" }}>
+                <span
+                    onClick={() => setShowFollowers(!showFollowers)}
+                    style={{ cursor: "pointer", fontWeight: "bold" }}
+                >
+                    Followers: {followers.length}
+                </span>
+                <span
+                    onClick={() => setShowFollowing(!showFollowing)}
+                    style={{ cursor: "pointer", fontWeight: "bold" }}
+                >
+                    Following: {following.length}
+                </span>
+            </div>
+
+            {/* Followers list */}
+            {showFollowers && (
+                <div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "10px", marginBottom: "15px" }}>
+                    <h3>Followers</h3>
+                    {followers.length === 0 ? (
+                        <p style={{ color: "#888" }}>No followers yet</p>
+                    ) : (
+                        followers.map((f) => (
+                            <div key={f._id} style={{ padding: "5px 0" }}>
+                                <Link to={`/searchedprofile/${f._id}`}>{f.name}</Link>
+                            </div>
+                        ))
+                    )}
+                </div>
+            )}
+
+            {/* Following list */}
+            {showFollowing && (
+                <div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "10px", marginBottom: "15px" }}>
+                    <h3>Following</h3>
+                    {following.length === 0 ? (
+                        <p style={{ color: "#888" }}>Not following anyone yet</p>
+                    ) : (
+                        following.map((f) => (
+                            <div key={f._id} style={{ padding: "5px 0" }}>
+                                <Link to={`/searchedprofile/${f._id}`}>{f.name}</Link>
+                            </div>
+                        ))
+                    )}
+                </div>
+            )}
+
             <h2>yours blog : </h2>
             {blogs.map((blog) => (
                 <div key={blog._id} className="blog-card">
@@ -103,34 +206,44 @@ const totalcomments = blogs.reduce(
                         </div>
                     </button>
 
-                    <button onClick={() => verify(blog._id)}>
-                        comment 📝
-                    </button>
                     <Link to={`/blog/${blog._id}`} >
                         Read Full blog
                     </Link>
                     <hr />
                 </div>))}
-<h2>your liked blog : </h2>
-               {likes.map((id) => (<div key={id}>
+            <h2>your liked blog : </h2>
+            {likes.map((id) => (<div key={id}>
                 <Link to={`/blog/${id}`}>{id}</Link>
-               </div>))} 
-               <h2>your commented blog : </h2>
-               {commentblog.map((id) => (<div key={id}>
+            </div>))}
+            <h2>your commented blog : </h2>
+            {commentblog.map((id) => (<div key={id}>
                 <Link to={`/blog/${id}`}>{id}</Link>
-               </div>))} 
-<hr />
-<hr />
-<hr />
+            </div>))}
+            <hr />
+            <hr />
+            <hr />
 
-totalviews : {totalviews}
-<hr />
-totallokes ; {totallikes}
-<hr />
-totalcommests : {totalcomments}
-        </>
+            totalviews : {totalviews}
+            <hr />
+            totallokes ; {totallikes}
+            <hr />
+            totalcommests : {totalcomments}
+
+            <hr />
+            <button onClick={getnoti}>notification history</button>
+            {notifications.length === 0 ? (
+                <p style={{ padding: "15px", color: "#888", textAlign: "center" }}>No notifications yet</p>
+            ) : (
+                notifications.map((n, i) => (
+                    <div key={i} style={{ padding: "12px", borderBottom: "1px solid #f9f9f9", fontSize: "13px" }}>
+                        <p style={{ margin: "0 0 5px 0" }}>{n.message}</p>
+                        <small style={{ color: "#aaa" }}>{new Date(n.time).toLocaleString()}</small>
+                    </div>
+                ))
+            )}
+        </div>
+    </>
     )
 }
 
 export default Profile
-

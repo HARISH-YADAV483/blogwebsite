@@ -1,31 +1,43 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
-
+// import { io } from 'socket.io-client';
 import axios from 'axios'
-
+import Navbar from "./Navbar";
 
 const API_URL = import.meta.env.VITE_API_URL;
+// const socket = io("http://localhost:5003");
 
 function Home() {
     const [blogs, setBlogs] = useState([]);
-
+    // const [unreadCount, setUnreadCount] = useState(0);
     const [hasMore, setHasMore] = useState(true);
-const [image, setimage] = useState(null);
+    const [image, setimage] = useState(null);
     const [message, setmessage] = useState(null);
     const [write, setwrite] = useState(false);
-    const [role, setrole] = useState(localStorage.getItem("role") || "");
+
     const name = localStorage.getItem("name");
+    const userId = localStorage.getItem("userId")
     const [formdata, setformdata] = useState({
         name: '',
         pass: ''
     });
+    const [role, setrole] = useState(localStorage.getItem("role") || "");
 
     const [token, setToken] = useState(localStorage.getItem('token') || null);
     const [isLoggedIn, setIsLoggedIn] = useState(!!token);
     const [otp, setotp] = useState("");
     const [isverified, setisverified] = useState(false);
     const [email, setemail] = useState("");
+
+
+    ///socket setip 
+
+
+    // const socket = io("http://localhost:5003");
+
+
+
 
     useEffect(() => {
         if (token) {
@@ -46,123 +58,123 @@ const [image, setimage] = useState(null);
 
     ///uplpad image
 
-    const[loading , setLoading] = useState(null);
+    const [loading, setLoading] = useState(null);
     const uploadImage = async () => {
 
-    const data = new FormData();
+        const data = new FormData();
 
-    data.append("file", image);
+        data.append("file", image);
 
-    data.append("upload_preset", "blogchit_images"); // Cloudinary preset
+        data.append("upload_preset", "blogchit_images"); // Cloudinary preset
 
-    data.append("cloud_name", "dqs0mesoe");
+        data.append("cloud_name", "dqs0mesoe");
 
-    try {
+        try {
 
-      setLoading(true);
+            setLoading(true);
 
-      const res = await axios.post(
+            const res = await axios.post(
 
-        "https://api.cloudinary.com/v1_1/dqs0mesoe/image/upload",
+                "https://api.cloudinary.com/v1_1/dqs0mesoe/image/upload",
 
-        data
+                data
 
-      );
+            );
 
-      setLoading(false);
+            setLoading(false);
 
-      return res.data.secure_url;
+            return res.data.secure_url;
 
-    } catch (error) {
+        } catch (error) {
 
-      setLoading(false);
+            setLoading(false);
 
-      console.log(error);
+            console.log(error);
 
-    }
+        }
 
-  };
+    };
 
     //////
     /////
     /////send otp ........
 
-const sendotp = async() =>{
-await axios.post(`${API_URL}/sendotp` , {email})
-.then(res =>{
-    setmessage(res.data.message);
-})
-.catch(err=>{
-    console.error(err);
-    console.log("unable to send otp");
-})
-}
+    const sendotp = async () => {
+        await axios.post(`${API_URL}/sendotp`, { email })
+            .then(res => {
+                setmessage(res.data.message);
+            })
+            .catch(err => {
+                console.error(err);
+                console.log("unable to send otp");
+            })
+    }
 
-const verifyotp = async() =>{
-    await axios.post(`${API_URL}/verifyotp` , {email, otp})
-    .then(res =>{
-        alert(res.data.message);
-        setisverified(true);
-    })
-    .catch(err=>{
-        console.error(err);
-        alert("Invalid OTP");
-    })
-}
+    const verifyotp = async () => {
+        await axios.post(`${API_URL}/verifyotp`, { email, otp })
+            .then(res => {
+                alert(res.data.message);
+                setisverified(true);
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Invalid OTP");
+            })
+    }
 
 
-///// verification with google ........
+    ///// verification with google ........
 
-const handleGoogleSuccess = async (credentialResponse) => {
+    const handleGoogleSuccess = async (credentialResponse) => {
 
-    try {
+        try {
 
-      const res = await axios.post(
+            const res = await axios.post(
 
-        `${API_URL}/verifygoogle`,
+                `${API_URL}/verifygoogle`,
 
-        {
+                {
 
-          credential: credentialResponse.credential,
+                    credential: credentialResponse.credential,
+
+                }
+
+            );
+            setmessage(res.data.message);
+
+            if (res.data.success) {
+
+                setemail(res.data.email);
+
+                setisverified(true);
+
+            }
+
+        } catch (error) {
+
+            console.log(error);
 
         }
 
-      );
-      setmessage(res.data.message);
-
-      if (res.data.success) {
-
-        setemail(res.data.email);
-       
-        setisverified(true);
-
-      }
-
-    } catch (error) {
-
-      console.log(error);
-
-    }
-
-  };
+    };
 
 
-    const handleregister = async(e) => {
+    const handleregister = async (e) => {
         e.preventDefault();
-let imageUrl = "";
+        let imageUrl = "";
 
-    if (image) {
+        if (image) {
 
-      imageUrl = await uploadImage();
+            imageUrl = await uploadImage();
 
-    }
-      const updatedformData = {
+        }
+        const updatedformData = {
 
-    ...formdata,
+            ...formdata,
 
-    image: imageUrl
+            image: imageUrl
 
-  };
+        };
 
         axios.post(`${API_URL}/regi`, { ...updatedformData, email })
             .then(res => {
@@ -183,6 +195,8 @@ let imageUrl = "";
                     setToken(res.data.token);
                     setIsLoggedIn(true);
                     localStorage.setItem("name", res.data.name);
+                    localStorage.setItem("userId", res.data.userId)
+                    socket.emit("setup_user", res.data.name);
                 }
                 if (res.data.role) {
                     setrole(res.data.role);
@@ -200,20 +214,6 @@ let imageUrl = "";
     }
 
 
-    const handleLogout = () => {
-        axios.post(`${API_URL}/logout`)
-            .then(res => {
-                setmessage(res.data.message);
-                setToken(null);
-                setIsLoggedIn(false);
-                localStorage.removeItem("name");
-                localStorage.removeItem("role");
-            })
-            .catch(err => {
-                console.error(err);
-                setmessage("Logout failed");
-            });
-    };
 
     ///blogs
 
@@ -225,25 +225,27 @@ let imageUrl = "";
         subtitle: '',
         content: '',
         author: localStorage.getItem("name"),
-        image: ''
+        authorId: localStorage.getItem("userId"),
+        image: '',
+
     });
-    
+
     const handlewriteb = async (e) => {
         e.preventDefault();
         let imageUrl = "";
 
-    if (image) {
+        if (image) {
 
-      imageUrl = await uploadImage();
+            imageUrl = await uploadImage();
 
-    }
-      const updatedBlogData = {
+        }
+        const updatedBlogData = {
 
-    ...blogdata,
+            ...blogdata,
 
-    image: imageUrl
+            image: imageUrl
 
-  };
+        };
         setwrite(false);
         axios.post(`${API_URL}/blog`, updatedBlogData)
             .then(res => {
@@ -285,8 +287,11 @@ let imageUrl = "";
             })
 
     }
-    const like = (id) => {
-        axios.post(`${API_URL}/like`, { id, name })
+
+
+    //like
+    const like = async (id) => {
+        await axios.post(`${API_URL}/like`, { id, userId })
             .then(res => {
                 setmessage(res.data.message);
                 // Update local state to show new like count immediately
@@ -304,18 +309,41 @@ let imageUrl = "";
 
     useEffect(() => {
         getpendingblogs();
+        // if (isLoggedIn && userId) {
+        //     socket.emit("setup_user", userId);
+
+        // Initial fetch of notifications
+        // axios.get(`${API_URL}/notifications/${userId}`)
+        //     .then(res => {
+        //         setNotifications(res.data);
+        //         setUnreadCount(res.data.filter(n => !n.isRead).length);
+        //     })
+        //     .catch(err => console.error("Error fetching notifs:", err));
+        // }
+
+        // const handleNewNotification = (newNotif) => {
+        //     // setNotifications(prev => [newNotif, ...prev]);
+        //     setUnreadCount(prev => prev + 1);
+        // };
+
+        // socket.on("receive_notification", handleNewNotification);
+
+        // return () => {
+        //     socket.off("receive_notification", handleNewNotification);
+        // };
     }, []);
 
 
     return (
         <>
-            frontend is running
+
 
             {!isLoggedIn ? (
                 <>
 
 
-                    {!isverified ? (<><h2>first you need to verify email to get registerd : </h2>
+                    {!isverified ? (<>
+                        <h2>first you need to verify email to get registerd : </h2>
                         <input type="text" placeholder="email" value={email} onChange={(e) => {
                             setemail(e.target.value);
                         }} />
@@ -328,16 +356,16 @@ let imageUrl = "";
                         <h1>or verufy your email with google</h1>
                         <GoogleLogin
 
-            onSuccess={handleGoogleSuccess}
+                            onSuccess={handleGoogleSuccess}
 
-            onError={() => console.log("Google Login Failed")}
+                            onError={() => console.log("Google Login Failed")}
 
-          />
+                        />
 
                     </>) : (<form onSubmit={handleregister} method="post">
                         <input type="text" name="name" placeholder="usermame" onChange={handleChange} value={formdata.name} />
                         <input type="text" name="pass" placeholder="create password" onChange={handleChange} value={formdata.pass} />
-                        <input type="file" accept="image/*"  onChange={(e) => setimage(e.target.files[0])}  />
+                        <input type="file" accept="image/*" onChange={(e) => setimage(e.target.files[0])} />
                         <button type="submit">{loading ? "Uploading..." : "register"}</button>
                     </form>)}
 
@@ -350,16 +378,13 @@ let imageUrl = "";
                     </form>
                 </>
             ) : (
+
                 <div>
+
+
                     <p>Welcome! You are logged in. kjhkh</p>
-                    <button onClick={handleLogout}>Logout</button>
 
-                    {role === "admin" && (
-                        <div><Link to={"/admin"}> admin</Link></div>
-                    )}
 
-                    <Link to={"/profile"}>profile</Link>
-                    <div>vvjh</div>
 
                     <div className="blogs">
 
@@ -368,28 +393,28 @@ let imageUrl = "";
                                 <input type="text" name="title" value={blogdata.title} onChange={handlChange} />
                                 <input type="text" name="subtitle" value={blogdata.subtitle} onChange={handlChange} />
                                 <input type="text" name="content" value={blogdata.content} onChange={handlChange} />
-                                 <input
+                                <input
 
-        type="file"
+                                    type="file"
 
-        accept="image/*"
+                                    accept="image/*"
 
-        onChange={(e) => setimage(e.target.files[0])}
+                                    onChange={(e) => setimage(e.target.files[0])}
 
-      />
+                                />
                                 <button type="submit">
 
-        {loading ? "Uploading..." : "Create Blog"}
+                                    {loading ? "Uploading..." : "Create Blog"}
 
-      </button>
+                                </button>
                             </form>
                         </div>)}
                     </div>
                     {blogs.map((blog) => (
                         <div key={blog._id} className="blog-card">
-   {blog.image && (
-  <img src={blog.image} alt="" style={{width:"300px" , height:"auto"}} />
-)}
+                            {blog.image && (
+                                <img src={blog.image} alt="" style={{ width: "300px", height: "auto" }} />
+                            )}
 
                             {blog.title}
                             <br />
@@ -491,8 +516,9 @@ let imageUrl = "";
                         </button>
                     )}
 
-                </div>
-            )}
+                </div >
+            )
+            }
 
 
             {message && <p>{message}</p>}

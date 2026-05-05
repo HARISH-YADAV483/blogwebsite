@@ -6,6 +6,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 function Fullblog() {
     const { id } = useParams();
+    const userId = localStorage.getItem("userId");
     const [blog, setBlog] = useState(null);
     const [loading, setLoading] = useState(true);
     const [comment, setcomment] = useState("");
@@ -27,7 +28,7 @@ function Fullblog() {
         }
     };
     const handlecomments = async () => {
-        await axios.post(`${API_URL}/comments`, { comment, id , name})
+        await axios.post(`${API_URL}/comments`, { comment, id, userId })
             .then(res => {
                 setcomments(res.data.comments);
                 setcomment("");
@@ -52,6 +53,7 @@ function Fullblog() {
 
     return (
         <>
+
             <Link to="/">Back to Home</Link>
             <h1>Full blog will appear here</h1>
             <h2> Title : {blog.title}</h2>

@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import Navbar from "./Navbar";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-function Admin() {
+function Admin({ unreadCount, setUnreadCount }) {
     const [blogs, setBlogs] = useState([]);
     const [message, setmessage] = useState("");
     const [hasMore, setHasMore] = useState(true);
+    const [comment , setcomment] =useState("");
     const getpendingblogs = async (isLoadMore = false) => {
         const skip = isLoadMore ? blogs.length : 0;
        const limit =5;
@@ -39,7 +41,7 @@ function Admin() {
 
     }
     const verify = (id) => {
-        axios.post(`${API_URL}/verify`, { id })
+        axios.post(`${API_URL}/verify`, { id , comment  })
             .then(res => {
                alert(res.data.message)
 
@@ -49,7 +51,7 @@ function Admin() {
         prevBlogs.filter(blog => blog._id !== id)
 
       );
-            })
+            setUnreadCount((prev) => Math.max(prev + 1, 0));  })
             .catch(err => {
                 console.error(err);
                 console.log("unable to verify");
@@ -57,14 +59,16 @@ function Admin() {
 
     }
     const reject = (id) => {
-        axios.post(`${API_URL}/reject`, { id })
+        axios.post(`${API_URL}/reject`, { id  , comment})
             .then(res => {
                alert(res.data.message);
                 setBlogs(prevBlogs =>
 
         prevBlogs.filter(blog => blog._id !== id)
 
+
       );
+        setUnreadCount((prev) => Math.max(prev + 1, 0));
             })
             .catch(err => {
                 console.error(err);
@@ -95,6 +99,9 @@ function Admin() {
                     <button onClick={() => verify(blog._id)}>
                         verify ✅
                     </button>
+                    <input type="text"  onChange={(e) => {
+                        setcomment(e.target.value);
+                    }}/>
                     <hr />
                 </div>))}
 
