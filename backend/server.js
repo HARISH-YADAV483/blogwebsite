@@ -37,7 +37,8 @@ const UserSchema = new mongoose.Schema({
     follower: Array,
     following: Array,
     image: String,
-    chatters:Array
+    chatters:Array,
+    unreadChatters: Array
     
 });
 const User = mongoose.model("User", UserSchema);
@@ -72,7 +73,8 @@ const MessageSchema = new mongoose.Schema({
     senderId: mongoose.Schema.Types.ObjectId,
     receiverId: mongoose.Schema.Types.ObjectId,
     message: String,
-    time: { type: Date, default: Date.now }
+    time: { type: Date, default: Date.now },
+    isRead: { type: Boolean, default: false }
 });
 const Message = mongoose.model("Message", MessageSchema);
 
@@ -108,8 +110,20 @@ io.on('connection', (socket) => {
     });
 
     // Handle message sending
-    socket.on('send_message', (message) => {
+    socket.on('send_message', async (message) => {
         io.to(message.receiverId.toString()).to(message.senderId.toString()).emit('receive_message', message);
+
+        // Notify receiver's personal room about new unread message
+        io.to(message.receiverId.toString()).emit('new_unread_message', message);
+
+        // Update receiver's unreadChatters in the database
+        try {
+            await User.findByIdAndUpdate(message.receiverId, {
+                $addToSet: { unreadChatters: message.senderId }
+            });
+        } catch (err) {
+            console.error("Error updating unreadChatters:", err);
+        }
     });
 
     socket.on('disconnect', () => {
@@ -921,10 +935,62 @@ app.get("/messages/:userId/:chatterId", async (req, res) => {
 app.post("/sendmessage", async (req, res) => {
   try {
     const { senderId, receiverId, message } = req.body;
-    const newMessage = new Message({ senderId, receiverId, message });
+    const newMessage = new Message({ senderId, receiverId, message, isRead: false });
     await newMessage.save();
     res.json(newMessage);
     
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Mark all messages from a sender as read for a receiver
+app.post("/markread", async (req, res) => {
+  try {
+    const { userId, chatterId } = req.body;
+    await Message.updateMany(
+      { senderId: chatterId, receiverId: userId, isRead: false },
+      { $set: { isRead: true } }
+    );
+    res.json({ message: "Messages marked as read" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get unread message counts grouped by sender
+app.get("/unreadcounts/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Get unique senders from Messages
+    const counts = await Message.aggregate([
+      { $match: { receiverId: new mongoose.Types.ObjectId(userId), isRead: false } },
+      { $group: { _id: "$senderId", count: { $sum: 1 } } }
+    ]);
+    
+    const perChatter = {};
+    counts.forEach(c => { perChatter[c._id.toString()] = c.count; });
+    
+    // Get unreadChatters from User document
+    const user = await User.findById(userId);
+    const unreadChatters = user?.unreadChatters || [];
+    
+    res.json({ 
+      total: counts.length, // Unique chatters count
+      perChatter,
+      unreadChatters
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post("/clearunread", async (req, res) => {
+  try {
+    const { userId } = req.body;
+    await User.findByIdAndUpdate(userId, { $set: { unreadChatters: [] } });
+    res.json({ message: "Unread chatters cleared" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

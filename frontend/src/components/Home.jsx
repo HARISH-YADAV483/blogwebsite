@@ -195,6 +195,7 @@ function Home() {
                     setToken(res.data.token);
                     setIsLoggedIn(true);
                     localStorage.setItem("name", res.data.name);
+                    localStorage.setItem("role", res.data.role);
                     localStorage.setItem("userId", res.data.userId)
                     socket.emit("setup_user", res.data.name);
                 }

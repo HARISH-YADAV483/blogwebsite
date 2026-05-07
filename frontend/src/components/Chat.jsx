@@ -6,7 +6,7 @@ import { io } from 'socket.io-client';
 const API_URL = import.meta.env.VITE_API_URL;
 const socket = io("http://localhost:5003");
 
-function Chat() {
+function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
     const { chatterId } = useParams();
     const navigate = useNavigate();
     const userId = localStorage.getItem("userId");
@@ -27,14 +27,45 @@ function Chat() {
         scrollToBottom();
     }, [messages]);
 
+    // Create a deterministic chatroom ID so both users join the same room
+    const chatroom = [userId, chatterId].sort().join("_");
+
+    // Mark messages as read when entering the chat
+    useEffect(() => {
+        if (userId && chatterId) {
+            const count = unreadPerChatter?.[chatterId] || 0;
+            if (count > 0) {
+                axios.post(`${API_URL}/markread`, { userId, chatterId })
+                    .then(() => {
+                        setUnreadPerChatter((prev) => {
+                            const updated = { ...prev };
+                            delete updated[chatterId];
+                            return updated;
+                        });
+                        setUnreadMsgCount((prev) => Math.max(prev - count, 0));
+                    })
+                    .catch(err => console.error("Error marking read:", err));
+            }
+        }
+    }, [chatterId, userId]);
+
     useEffect(() => {
         if (userId) {
             socket.emit("setup_user", userId);
         }
 
+        // Join the private chat room
+        if (userId && chatterId) {
+            socket.emit("join_chat", chatroom);
+        }
+
         const handleReceiveMessage = (message) => {
             if (message.senderId.toString() === chatterId || message.receiverId.toString() === chatterId) {
                 setMessages((prev) => [...prev, message]);
+                // Auto-mark as read since user is in the chat
+                if (message.senderId.toString() === chatterId) {
+                    axios.post(`${API_URL}/markread`, { userId, chatterId }).catch(() => {});
+                }
             }
         };
 

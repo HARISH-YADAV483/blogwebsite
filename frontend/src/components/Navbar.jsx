@@ -8,7 +8,7 @@ import axios from 'axios'
 const API_URL = import.meta.env.VITE_API_URL;
 const socket = io("http://localhost:5003");
 
-function Navbar({ unreadCount, setUnreadCount }) {
+function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount, unreadPerChatter, setUnreadPerChatter, unreadChatters, setUnreadChatters }) {
     const name = localStorage.getItem("name");
     const userId = localStorage.getItem("userId"); 
    
@@ -53,6 +53,16 @@ function Navbar({ unreadCount, setUnreadCount }) {
                     setUnreadCount(res.data.filter(n => !n.isRead).length);
                 })
                 .catch(err => console.error("Error fetching notifs:", err));
+
+            // Fetch initial unread message counts
+            axios.get(`${API_URL}/unreadcounts/${userId}`)
+                .then(res => {
+                    const { unreadChatters, perChatter } = res.data;
+                    setUnreadChatters(unreadChatters || []);
+                    setUnreadMsgCount(unreadChatters?.length || 0);
+                    setUnreadPerChatter(perChatter || {});
+                })
+                .catch(err => console.error("Error fetching unread counts:", err));
          }
 
         const handleNewNotification = (newNotif) => {
@@ -61,10 +71,31 @@ function Navbar({ unreadCount, setUnreadCount }) {
           
         };
 
-        socket.on("receive_notification", handleNewNotification);
+        const handleNewUnreadMessage = (msg) => {
+            // Only increment if the message is for this user (receiver)
+            if (msg.receiverId?.toString() === userId) {
+                setUnreadChatters((prev) => {
+                    if (!prev.includes(msg.senderId.toString())) {
+                        setUnreadMsgCount((prevCount) => prevCount + 1);
+                        return [...prev, msg.senderId.toString()];
+                    }
+                    return prev;
+                });
+
+                setUnreadPerChatter((prev) => ({
+                    ...prev,
+                    [msg.senderId.toString()]: (prev[msg.senderId.toString()] || 0) + 1
+                }));
+            }
+        };
+
+      
+        socket.on("new_unread_message", handleNewUnreadMessage);
+          socket.on("receive_notification", handleNewNotification);
 
         return () => {
             socket.off("receive_notification", handleNewNotification);
+            socket.off("new_unread_message", handleNewUnreadMessage);
         };
     }, [name]);
 
@@ -84,7 +115,34 @@ function Navbar({ unreadCount, setUnreadCount }) {
 
             <Link to={"/profile"}>profile</Link>
 <Link to={"/search"}>search</Link>
-            <Link to={"/messages"}>messages</Link>
+            <div style={{ position: "relative", display: "inline-block" }}>
+                <Link to={"/messages"} onClick={() => { 
+                    setUnreadMsgCount(0); 
+                    setUnreadChatters([]); 
+                    axios.post(`${API_URL}/clearunread`, { userId }).catch(err => console.error(err));
+                }} style={{ position: "relative", textDecoration: "none", color: "inherit" }}>
+                    💬 messages
+                    {unreadMsgCount > 0 && (
+                        <span style={{
+                            position: "absolute",
+                            top: "-10px",
+                            right: "-14px",
+                            background: "#ff3b30",
+                            color: "white",
+                            borderRadius: "50%",
+                            padding: "2px 6px",
+                            fontSize: "10px",
+                            fontWeight: "bold",
+                            minWidth: "18px",
+                            textAlign: "center",
+                            lineHeight: "14px",
+                            boxShadow: "0 1px 3px rgba(0,0,0,0.3)"
+                        }}>
+                            {unreadMsgCount}
+                        </span>
+                    )}
+                </Link>
+            </div>
 
         </div>
 
@@ -94,4 +152,5 @@ function Navbar({ unreadCount, setUnreadCount }) {
 }
 
 export default Navbar
+
 
