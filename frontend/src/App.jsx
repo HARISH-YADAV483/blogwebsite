@@ -11,6 +11,8 @@ import Search from "./components/Search";
 import Searchedprofile from "./components/Searchedprofile";
 import Messages from "./components/Messages";
 import Chat from "./components/Chat";
+import Register from "./components/register";
+import Login from "./components/login";
 function ProtectedAdminRoute({ children }) {
   const role = localStorage.getItem("role");
   return role == "admin" ? children : <Navigate to="/" />;
@@ -44,6 +46,8 @@ const [unreadChatters, setUnreadChatters] = useState([]);
           }
         />
         <Route path="/" element={<Home />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/blog/:id" element={<Fullblog />} />
         <Route path="/profile/:id" element={<Searchedprofile  unreadCount = {unreadCount}  setUnreadCount = {setUnreadCount} />} />
         <Route path="/profile" element={<Profile  />} />
