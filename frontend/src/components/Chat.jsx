@@ -184,7 +184,23 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                                 color: msg.senderId.toString() === userId ? "white" : "#333",
                                 wordWrap: "break-word"
                             }}>
-                                {msg.message}
+                                {(() => {
+                                    if (msg.message.includes("http://localhost:5173/blog/")) {
+                                        const urlMatch = msg.message.match(/http:\/\/localhost:5173\/blog\/([a-zA-Z0-9_]+)/);
+                                        if (urlMatch) {
+                                            const path = `/blog/${urlMatch[1]}`;
+                                            return (
+                                                <span 
+                                                    onClick={() => navigate(path)} 
+                                                    style={{ cursor: "pointer", textDecoration: "underline" }}
+                                                >
+                                                    {msg.message}
+                                                </span>
+                                            );
+                                        }
+                                    }
+                                    return msg.message;
+                                })()}
                                 <div style={{
                                     fontSize: "12px",
                                     opacity: 0.7,

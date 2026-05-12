@@ -23,6 +23,9 @@ function Profile() {
     const [following, setfollowing] = useState([]);
     const [showFollowers, setShowFollowers] = useState(false);
     const [showFollowing, setShowFollowing] = useState(false);
+    const [chatters , setchatters] = useState([]);
+    const [selectedBlogId, setSelectedBlogId] = useState(null);
+    const [selectedChatters, setSelectedChatters] = useState([]);
     
     const getprofile = async () => {
         await axios.post(`${API_URL}/getprofile`, { name })
@@ -35,6 +38,7 @@ function Profile() {
                 setimage(res.data.image);
                 setfollowers(res.data.followers || []);
                 setfollowing(res.data.following || []);
+                setchatters(res.data.chatters || []);
             })
             .catch(err => {
                 console.error(err);
@@ -110,6 +114,9 @@ function Profile() {
 
 
     }, []);
+    // const handleshare = ()=>{
+
+    // }
     return (<>
         
         <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto", fontFamily: "'Inter', sans-serif" }}>
@@ -209,6 +216,12 @@ function Profile() {
                     <Link to={`/blog/${blog._id}`} >
                         Read Full blog
                     </Link>
+            <button onClick={() => setSelectedBlogId(selectedBlogId === blog._id ? null : blog._id)}>
+  {selectedBlogId === blog._id ? "cancel" : "share"}
+</button>
+
+
+
                     <hr />
                 </div>))}
             <h2>your liked blog : </h2>
@@ -222,6 +235,57 @@ function Profile() {
             <hr />
             <hr />
             <hr />
+             {selectedBlogId && (
+
+        <div style={{ padding: "20px", background: "lightblue" }}>
+            <h3>Select chatters to share with:</h3>
+  {chatters.map((chatter) =>(
+    <div key={chatter._id}>
+        <div style={{display:"flex"}}><p>{chatter.name}</p> 
+        <input 
+            type="checkbox" 
+            checked={selectedChatters.includes(chatter._id)}
+            onChange={(e) => {
+                if (e.target.checked) {
+                    setSelectedChatters([...selectedChatters, chatter._id]);
+                } else {
+                    setSelectedChatters(selectedChatters.filter(id => id !== chatter._id));
+                }
+            }}
+        /></div>
+    </div>
+  ))}
+  <button 
+    onClick={async () => {
+        if (selectedChatters.length === 0) return;
+        const blogUrl = `http://localhost:5173/blog/${selectedBlogId}`;
+        const messageContent = `Check out this blog: ${blogUrl}`;
+        
+        try {
+            for (const chatterId of selectedChatters) {
+                const messageData = {
+                    senderId: userId,
+                    receiverId: chatterId,
+                    message: messageContent
+                };
+                const res = await axios.post(`${API_URL}/sendmessage`, messageData);
+                socket.emit("send_message", res.data);
+            }
+            setSelectedBlogId(null);
+            setSelectedChatters([]);
+            alert("Shared successfully!");
+        } catch (err) {
+            console.error("Error sharing:", err);
+            alert("Failed to share.");
+        }
+    }}
+    style={{ marginTop: "10px", padding: "5px 10px" }}
+  >
+    Send
+  </button>
+        </div>
+
+      )}
 
             totalviews : {totalviews}
             <hr />

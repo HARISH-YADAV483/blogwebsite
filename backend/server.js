@@ -118,7 +118,7 @@ io.on('connection', (socket) => {
 
         // Update receiver's unreadChatters in the database
         try {
-            await User.findByIdAndUpdate(message.receiverId, {
+           await User.findByIdAndUpdate(message.receiverId, {
                 $addToSet: { unreadChatters: message.senderId }
             });
         } catch (err) {
@@ -625,7 +625,9 @@ app.post("/getprofile", async (req, res) => {
         const liked = user.blogliked || [];
         const commented = user.blogcommented || [];
         const image = user.image || "";
-
+        
+        const chatterIds = user.chatters || [];
+        const chatters = await User.find({ _id: { $in: chatterIds } }, '_id name image');
         // Resolve follower/following IDs to {_id, name} objects
         const followerIds = user.follower || [];
         const followingIds = user.following || [];
@@ -641,7 +643,8 @@ app.post("/getprofile", async (req, res) => {
             image,
             name: userName,
             followers: followerUsers,
-            following: followingUsers
+            following: followingUsers,
+            chatters
         });
 
     } catch (error) {
