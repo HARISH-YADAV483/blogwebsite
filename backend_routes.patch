@@ -1,0 +1,26 @@
+--- backend/server.js
++++ backend/server.js
+@@ -1230,6 +1230,24 @@
+         res.status(500).json({ message: error.message });
+     }
+ });
++
++app.post("/community/remove_member", async (req, res) => {
++    try {
++        const { creatorId, communityId, memberId } = req.body;
++        const community = await Community.findById(communityId);
++        if (!community) return res.status(404).json({ message: "Community not found" });
++        if (community.creatorId.toString() !== creatorId) return res.status(403).json({ message: "Unauthorized" });
++
++        community.members = community.members.filter(id => id.toString() !== memberId);
++        await community.save();
++
++        await User.findByIdAndUpdate(memberId, { $pull: { communities: communityId } });
++        
++        res.json({ success: true, message: "Member removed" });
++    } catch (error) {
++        res.status(500).json({ message: error.message });
++    }
++});
+ 
+ app.get("/community/:communityId/messages", async (req, res) => {

@@ -74,21 +74,9 @@ const MessageSchema = new mongoose.Schema({
     receiverId: mongoose.Schema.Types.ObjectId,
     message: String,
     time: { type: Date, default: Date.now },
-    isRead: { type: Boolean, default: false },
-    deletedBy: [{ type: mongoose.Schema.Types.ObjectId }]
+    isRead: { type: Boolean, default: false }
 });
 const Message = mongoose.model("Message", MessageSchema);
-
-const DeletedMessageSchema = new mongoose.Schema({
-    originalId: mongoose.Schema.Types.ObjectId,
-    senderId: mongoose.Schema.Types.ObjectId,
-    receiverId: mongoose.Schema.Types.ObjectId,
-    message: String,
-    time: Date,
-    deletedAt: { type: Date, default: Date.now },
-    deletedByType: String
-});
-const DeletedMessage = mongoose.model("DeletedMessage", DeletedMessageSchema);
 
 const CommunitySchema = new mongoose.Schema({
     name: String,
@@ -105,21 +93,9 @@ const CommunityMessageSchema = new mongoose.Schema({
     communityId: mongoose.Schema.Types.ObjectId,
     senderId: mongoose.Schema.Types.ObjectId,
     message: String,
-    time: { type: Date, default: Date.now },
-    deletedBy: [{ type: mongoose.Schema.Types.ObjectId }]
+    time: { type: Date, default: Date.now }
 });
 const CommunityMessage = mongoose.model("CommunityMessage", CommunityMessageSchema);
-
-const DeletedCommunityMessageSchema = new mongoose.Schema({
-    originalId: mongoose.Schema.Types.ObjectId,
-    communityId: mongoose.Schema.Types.ObjectId,
-    senderId: mongoose.Schema.Types.ObjectId,
-    message: String,
-    time: Date,
-    deletedAt: { type: Date, default: Date.now },
-    deletedByType: String
-});
-const DeletedCommunityMessage = mongoose.model("DeletedCommunityMessage", DeletedCommunityMessageSchema);
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -1007,8 +983,7 @@ app.get("/messages/:userId/:chatterId", async (req, res) => {
       $or: [
         { senderId: userId, receiverId: chatterId },
         { senderId: chatterId, receiverId: userId }
-      ],
-      deletedBy: { $ne: new mongoose.Types.ObjectId(userId) }
+      ]
     })
     .sort({ time: -1 })
     .skip(skip)
@@ -1017,50 +992,6 @@ app.get("/messages/:userId/:chatterId", async (req, res) => {
     res.json(messages.reverse());
   } catch (error) {
     res.status(500).json({ message: error.message });
-  }
-});
-
-// Delete personal messages
-app.post("/messages/delete", async (req, res) => {
-  try {
-    const { messageIds, userId, type, chatroom } = req.body;
-    if (!messageIds || !userId || !type) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
-    }
-
-    if (type === "for_me") {
-      await Message.updateMany(
-        { _id: { $in: messageIds } },
-        { $addToSet: { deletedBy: new mongoose.Types.ObjectId(userId) } }
-      );
-      return res.json({ success: true, message: "Messages deleted for you" });
-    } else if (type === "permanently") {
-      const messagesToDelete = await Message.find({ _id: { $in: messageIds }, senderId: userId });
-      const deletedDocs = messagesToDelete.map(msg => ({
-        originalId: msg._id,
-        senderId: msg.senderId,
-        receiverId: msg.receiverId,
-        message: msg.message,
-        time: msg.time,
-        deletedByType: "permanently"
-      }));
-      if (deletedDocs.length > 0) {
-        await DeletedMessage.insertMany(deletedDocs);
-      }
-
-      await Message.deleteMany({ _id: { $in: messageIds }, senderId: userId });
-
-      // Emit socket event to both users in the room
-      if (chatroom) {
-        io.to(chatroom).emit("messages_deleted", { messageIds });
-      }
-
-      return res.json({ success: true, message: "Messages deleted permanently" });
-    }
-
-    res.status(400).json({ success: false, message: "Invalid delete type" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
   }
 });
 
@@ -1300,37 +1231,13 @@ app.post("/community/add_members", async (req, res) => {
     }
 });
 
-app.post("/community/remove_member", async (req, res) => {
-    try {
-        const { creatorId, communityId, memberId } = req.body;
-        const community = await Community.findById(communityId);
-        if (!community) return res.status(404).json({ message: "Community not found" });
-        if (community.creatorId.toString() !== creatorId) return res.status(403).json({ message: "Unauthorized" });
-
-        community.members = community.members.filter(id => id.toString() !== memberId);
-        await community.save();
-
-        await User.findByIdAndUpdate(memberId, { $pull: { communities: communityId } });
-        
-        res.json({ success: true, message: "Member removed" });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
 app.get("/community/:communityId/messages", async (req, res) => {
     try {
         const { communityId } = req.params;
         const limit = parseInt(req.query.limit) || 20;
         const skip = parseInt(req.query.skip) || 0;
-        const userId = req.query.userId;
 
-        const query = { communityId };
-        if (userId) {
-            query.deletedBy = { $ne: new mongoose.Types.ObjectId(userId) };
-        }
-
-        const messages = await CommunityMessage.find(query)
+        const messages = await CommunityMessage.find({ communityId })
             .sort({ time: -1 })
             .skip(skip)
             .limit(limit);
@@ -1338,48 +1245,6 @@ app.get("/community/:communityId/messages", async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-});
-
-// Delete community messages
-app.post("/community/messages/delete", async (req, res) => {
-  try {
-    const { messageIds, userId, type, communityId } = req.body;
-    if (!messageIds || !userId || !type || !communityId) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
-    }
-
-    if (type === "for_me") {
-      await CommunityMessage.updateMany(
-        { _id: { $in: messageIds } },
-        { $addToSet: { deletedBy: new mongoose.Types.ObjectId(userId) } }
-      );
-      return res.json({ success: true, message: "Messages deleted for you" });
-    } else if (type === "permanently") {
-      const messagesToDelete = await CommunityMessage.find({ _id: { $in: messageIds }, senderId: userId });
-      const deletedDocs = messagesToDelete.map(msg => ({
-        originalId: msg._id,
-        communityId: msg.communityId,
-        senderId: msg.senderId,
-        message: msg.message,
-        time: msg.time,
-        deletedByType: "permanently"
-      }));
-      if (deletedDocs.length > 0) {
-        await DeletedCommunityMessage.insertMany(deletedDocs);
-      }
-
-      await CommunityMessage.deleteMany({ _id: { $in: messageIds }, senderId: userId });
-
-      // Emit socket event to the community room
-      io.to(communityId).emit("community_messages_deleted", { communityId, messageIds });
-
-      return res.json({ success: true, message: "Messages deleted permanently" });
-    }
-
-    res.status(400).json({ success: false, message: "Invalid delete type" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
 });
 
 app.post("/community/:communityId/sendmessage", async (req, res) => {

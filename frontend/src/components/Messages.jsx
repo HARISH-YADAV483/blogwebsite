@@ -44,6 +44,7 @@ function Messages({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) 
     };
 
     return (
+        <>
         <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto", fontFamily: "'Inter', sans-serif" }}>
             <h1>Messages</h1>
             
@@ -126,6 +127,11 @@ function Messages({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) 
                 </div>
             )}
         </div>
+        <div className="communities">
+<h1>Communities</h1>
+
+        </div>
+        </>
     );
 }
 

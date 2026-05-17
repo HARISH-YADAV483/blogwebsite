@@ -115,6 +115,7 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
 
             <Link to={"/profile"}>profile</Link>
 <Link to={"/search"}>search</Link>
+<Link to={"/communities"}>Communities</Link>
             <div style={{ position: "relative", display: "inline-block" }}>
                 <Link to={"/messages"} onClick={() => { 
                     setUnreadMsgCount(0); 

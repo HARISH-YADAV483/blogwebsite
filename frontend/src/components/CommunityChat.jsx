@@ -1,21 +1,19 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate , Link} from "react-router-dom";
 import axios from "axios";
 import { io } from 'socket.io-client';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const socket = io("http://localhost:5003");
 
-function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
-    const { chatterId } = useParams();
+function CommunityChat() {
+    const { communityId } = useParams();
     const navigate = useNavigate();
     const userId = localStorage.getItem("userId");
-    const name = localStorage.getItem("name");
     
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
-    const [chatterName, setChatterName] = useState("");
-    const [chatterImage, setChatterImage] = useState("");
+    const [communityName, setCommunityName] = useState("");
     const [loading, setLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
     const [showShareMenu, setShowShareMenu] = useState(false);
@@ -36,11 +34,11 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
         const messageIds = selectedMessages.map(msg => msg._id);
         
         try {
-            const res = await axios.post(`${API_URL}/messages/delete`, {
+            const res = await axios.post(`${API_URL}/community/messages/delete`, {
                 messageIds,
                 userId,
                 type,
-                chatroom
+                communityId
             });
             if (res.data.success) {
                 if (type === "for_me") {
@@ -87,46 +85,15 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
         }
     }, [messages]);
 
-    // Create a deterministic chatroom ID so both users join the same room
-    const chatroom = [userId, chatterId].sort().join("_");
-
-    // Mark messages as read when entering the chat
     useEffect(() => {
-        if (userId && chatterId) {
-            const count = unreadPerChatter?.[chatterId] || 0;
-            if (count > 0) {
-                axios.post(`${API_URL}/markread`, { userId, chatterId })
-                    .then(() => {
-                        setUnreadPerChatter((prev) => {
-                            const updated = { ...prev };
-                            delete updated[chatterId];
-                            return updated;
-                        });
-                        setUnreadMsgCount((prev) => Math.max(prev - count, 0));
-                    })
-                    .catch(err => console.error("Error marking read:", err));
-            }
-        }
-    }, [chatterId, userId]);
-
-    useEffect(() => {
-        if (userId) {
-            socket.emit("setup_user", userId);
-        }
-
-        // Join the private chat room
-        if (userId && chatterId) {
-            socket.emit("join_chat", chatroom);
+        if (userId && communityId) {
+            socket.emit("join_community_chat", communityId);
         }
 
         const handleReceiveMessage = (message) => {
-            if (message.senderId.toString() === chatterId || message.receiverId.toString() === chatterId) {
+            if (message.communityId === communityId) {
                 shouldScrollToBottomRef.current = true;
                 setMessages((prev) => [...prev, message]);
-                // Auto-mark as read since user is in the chat
-                if (message.senderId.toString() === chatterId) {
-                    axios.post(`${API_URL}/markread`, { userId, chatterId }).catch(() => {});
-                }
             }
         };
 
@@ -134,27 +101,25 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
             setMessages((prev) => prev.filter(msg => !messageIds.includes(msg._id)));
         };
 
-        socket.on("receive_message", handleReceiveMessage);
-        socket.on("messages_deleted", handleMessagesDeleted);
+        socket.on("receive_community_message", handleReceiveMessage);
+        socket.on("community_messages_deleted", handleMessagesDeleted);
 
         return () => {
-            socket.off("receive_message", handleReceiveMessage);
-            socket.off("messages_deleted", handleMessagesDeleted);
-            if (userId && chatterId) {
-                socket.emit("leave_chat", chatroom);
+            socket.off("receive_community_message", handleReceiveMessage);
+            socket.off("community_messages_deleted", handleMessagesDeleted);
+            if (userId && communityId) {
+                socket.emit("leave_community_chat", communityId);
             }
         };
-    }, [chatterId, userId, chatroom]);
+    }, [communityId, userId]);
 
     const loadChat = async (currentSkip = 0) => {
         try {
             if (currentSkip === 0) {
-                const chatterRes = await axios.get(`${API_URL}/chatters/${userId}`);
-                const chatter = chatterRes.data.find(c => c._id === chatterId);
-                if (chatter) {
-                    setChatterName(chatter.name);
-                    setChatterImage(chatter.image || "");
-                }
+                // Fetch community details if needed
+                const commRes = await axios.get(`${API_URL}/community/search?q=`);
+                const comm = commRes.data.find(c => c._id === communityId);
+                if (comm) setCommunityName(comm.name);
             } else {
                 setIsLoadingMore(true);
                 shouldScrollToBottomRef.current = false;
@@ -163,7 +128,7 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                 }
             }
 
-            const messagesRes = await axios.get(`${API_URL}/messages/${userId}/${chatterId}?skip=${currentSkip}&limit=20`);
+            const messagesRes = await axios.get(`${API_URL}/community/${communityId}/messages?skip=${currentSkip}&limit=20&userId=${userId}`);
             const fetchedMessages = messagesRes.data || [];
 
             if (fetchedMessages.length < 20) {
@@ -187,13 +152,13 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
     };
 
     useEffect(() => {
-        if (userId && chatterId) {
+        if (userId && communityId) {
             setSkip(0);
             setHasMore(true);
             shouldScrollToBottomRef.current = true;
             loadChat(0);
         }
-    }, [userId, chatterId]);
+    }, [userId, communityId]);
 
     const handleScroll = (e) => {
         if (e.target.scrollTop === 0 && hasMore && !isLoadingMore && !loading) {
@@ -208,14 +173,13 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
         try {
             const messageData = {
                 senderId: userId,
-                receiverId: chatterId,
                 message: newMessage
             };
 
-            const res = await axios.post(`${API_URL}/sendmessage`, messageData);
+            const res = await axios.post(`${API_URL}/community/${communityId}/sendmessage`, messageData);
             
             shouldScrollToBottomRef.current = true;
-            socket.emit("send_message", res.data);
+            socket.emit("send_community_message", res.data);
 
             setNewMessage("");
         } catch (err) {
@@ -243,12 +207,11 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
             
             const messageData = {
                 senderId: userId,
-                receiverId: chatterId,
                 message: res.data.secure_url
             };
 
-            const sendRes = await axios.post(`${API_URL}/sendmessage`, messageData);
-            socket.emit("send_message", sendRes.data);
+            const sendRes = await axios.post(`${API_URL}/community/${communityId}/sendmessage`, messageData);
+            socket.emit("send_community_message", sendRes.data);
             
         } catch (error) {
             setIsUploading(false);
@@ -276,15 +239,9 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                 display: "flex", 
                 alignItems: "center",
                 gap: "10px"
-            }}>
-                {chatterImage && (
-                    <img 
-                        src={chatterImage} 
-                        alt="" 
-                        style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} 
-                    />
-                )}
-                <h2>{chatterName}</h2>
+            }}><Link to={`/community/${communityId}`} >
+                <h2>{communityName || "Community Chat"}</h2>
+                </Link>
                 <button 
                     onClick={() => {
                         setIsSelectionMode(!isSelectionMode);
@@ -333,8 +290,9 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                             style={{
                                 marginBottom: "15px",
                                 display: "flex",
-                                justifyContent: msg.senderId.toString() === userId ? "flex-end" : "flex-start",
+                                flexDirection: "row",
                                 alignItems: "center",
+                                justifyContent: msg.senderId.toString() === userId ? "flex-end" : "flex-start",
                                 gap: "10px",
                                 cursor: isSelectionMode ? "pointer" : "default"
                             }}
@@ -348,13 +306,22 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                                 />
                             )}
                             <div style={{
-                                maxWidth: "60%",
-                                padding: "10px 15px",
-                                borderRadius: "18px",
-                                backgroundColor: msg.senderId.toString() === userId ? "#007bff" : "#e9ecef",
-                                color: msg.senderId.toString() === userId ? "white" : "#333",
-                                wordWrap: "break-word"
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: msg.senderId.toString() === userId ? "flex-end" : "flex-start",
+                                maxWidth: "60%"
                             }}>
+                                {msg.senderId.toString() !== userId && (
+                                    <span style={{ fontSize: "12px", color: "#666", marginBottom: "2px", marginLeft: "10px" }}>User {msg.senderId.substring(0,4)}</span>
+                                )}
+                                <div style={{
+                                    width: "100%",
+                                    padding: "10px 15px",
+                                    borderRadius: "18px",
+                                    backgroundColor: msg.senderId.toString() === userId ? "#007bff" : "#e9ecef",
+                                    color: msg.senderId.toString() === userId ? "white" : "#333",
+                                    wordWrap: "break-word"
+                                }}>
                                 {(() => {
                                     if (msg.message.includes("http://localhost:5173/blog/")) {
                                         const urlMatch = msg.message.match(/http:\/\/localhost:5173\/blog\/([a-zA-Z0-9_]+)/);
@@ -377,7 +344,6 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                                             thumbUrl = thumbUrl.substring(0, dotIndex) + '.jpg';
                                         }
                                         
-                                        // Optimize load time by requesting a smaller, compressed version
                                         thumbUrl = thumbUrl.replace("/upload/", "/upload/w_400,c_limit,q_auto,f_auto/");
 
                                         return (
@@ -405,6 +371,7 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                                     {new Date(msg.time).toLocaleTimeString()}
                                 </div>
                             </div>
+                        </div>
                         </div>
                     ))}
                     </>
@@ -506,7 +473,7 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                     Send
                 </button>
             </form>
-            
+
             {selectedMessages.length > 0 && (
                 <div style={{
                     position: "absolute",
@@ -548,5 +515,4 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
     );
 }
 
-export default Chat;
-
+export default CommunityChat;

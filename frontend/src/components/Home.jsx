@@ -2,9 +2,9 @@ import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios'
 import Navbar from "./Navbar";
-
+import { io } from 'socket.io-client';
+const socket = io("http://localhost:5003");
 const API_URL = import.meta.env.VITE_API_URL;
-
 function Home() {
     const [blogs, setBlogs] = useState([]);
     const [hasMore, setHasMore] = useState(true);
@@ -12,7 +12,9 @@ function Home() {
     const [message, setmessage] = useState(null);
     const [write, setwrite] = useState(false);
     const navigate = useNavigate();
-
+    const [chatters , setchatters] = useState([]);
+      const [selectedBlogId, setSelectedBlogId] = useState(null);
+    const [selectedChatters, setSelectedChatters] = useState([]);
     const userId = localStorage.getItem("userId")
     const [role, setrole] = useState(localStorage.getItem("role") || "");
     const token = localStorage.getItem('token');
@@ -128,10 +130,21 @@ function Home() {
                 setmessage("Unable to like blog");
             })
     }
+    const getChatters = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/chatters/${userId}`);
+            setchatters(res.data || []);
+         
+        } catch (err) {
+            console.error("Error fetching chatters:", err);
+            
+        }
+    };
 
     useEffect(() => {
         if (token) {
             getpendingblogs();
+            getChatters();
         }
     }, [token]);
 
@@ -218,8 +231,62 @@ function Home() {
                         <Link to={`/blog/${blog._id}`} >
                             Read Full blog
                         </Link>
+                           <button onClick={() => setSelectedBlogId(selectedBlogId === blog._id ? null : blog._id)}>
+  {selectedBlogId === blog._id ? "cancel" : "share"}
+</button>
                         <hr />
                     </div>))}
+                     {selectedBlogId && (
+
+        <div style={{ padding: "20px", background: "lightblue" }}>
+            <h3>Select chatters to share with:</h3>
+  {chatters.map((chatter) =>(
+    <div key={chatter._id} >
+        <div style={{display:"flex"}}><p>{chatter.name}</p> 
+        <input 
+            type="checkbox" 
+            checked={selectedChatters.includes(chatter._id)}
+            onChange={(e) => {
+                if (e.target.checked) {
+                    setSelectedChatters([...selectedChatters, chatter._id]);
+                } else {
+                    setSelectedChatters(selectedChatters.filter(id => id !== chatter._id));
+                }
+            }}
+        /></div>
+    </div>
+  ))}
+  <button 
+    onClick={async () => {
+        if (selectedChatters.length === 0) return;
+        const blogUrl = `http://localhost:5173/blog/${selectedBlogId}`;
+        const messageContent = `Check out this blog: ${blogUrl}`;
+        
+        try {
+            for (const chatterId of selectedChatters) {
+                const messageData = {
+                    senderId: userId,
+                    receiverId: chatterId,
+                    message: messageContent
+                };
+                const res = await axios.post(`${API_URL}/sendmessage`, messageData);
+                socket.emit("send_message", res.data);
+            }
+            setSelectedBlogId(null);
+            setSelectedChatters([]);
+            alert("Shared successfully!");
+        } catch (err) {
+            console.error("Error sharing:", err);
+            alert("Failed to share.");
+        }
+    }}
+    style={{ marginTop: "10px", padding: "5px 10px" }}
+  >
+    Send
+  </button>
+        </div>
+
+      )}
 
                 {hasMore && (
                     <button onClick={() => getpendingblogs(true)}>
