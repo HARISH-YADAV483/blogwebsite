@@ -14,7 +14,7 @@ import Chat from "./components/Chat";
 import CommunityChat from "./components/CommunityChat";
 import Register from "./components/register";
 import Communitydetail from "./components/Communitydetail";
-import Login from "./components/login";
+import Login from "./components/Login";
 function ProtectedAdminRoute({ children }) {
   const role = localStorage.getItem("role");
   return role == "admin" ? children : <Navigate to="/" />;
