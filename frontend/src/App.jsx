@@ -12,7 +12,7 @@ import Searchedprofile from "./components/Searchedprofile";
 import Messages from "./components/Messages";
 import Chat from "./components/Chat";
 import CommunityChat from "./components/CommunityChat";
-import Register from "./components/register";
+import Register from "./components/Register";
 import Communitydetail from "./components/Communitydetail";
 import Login from "./components/Login";
 function ProtectedAdminRoute({ children }) {
