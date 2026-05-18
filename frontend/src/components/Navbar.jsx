@@ -6,7 +6,7 @@ import { io } from 'socket.io-client';
 import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_URL;
-const socket = io("http://localhost:5003");
+const socket = io(import.meta.env.VITE_SOCKET_URL);
 
 function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount, unreadPerChatter, setUnreadPerChatter, unreadChatters, setUnreadChatters }) {
     const name = localStorage.getItem("name");

@@ -4,7 +4,7 @@ import axios from "axios";
 import { io } from 'socket.io-client';
 
 const API_URL = import.meta.env.VITE_API_URL;
-const socket = io("http://localhost:5003");
+const socket = io(import.meta.env.VITE_SOCKET_URL);
 
 function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
     const { chatterId } = useParams();
@@ -230,13 +230,13 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
         setShowShareMenu(false);
         const data = new FormData();
         data.append("file", file);
-        data.append("upload_preset", "blogchit_images");
-        data.append("cloud_name", "dqs0mesoe");
+        data.append("upload_preset", import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+        data.append("cloud_name", import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
 
         try {
             setIsUploading(true);
             const res = await axios.post(
-                "https://api.cloudinary.com/v1_1/dqs0mesoe/auto/upload",
+                `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/auto/upload`,
                 data
             );
             setIsUploading(false);
@@ -356,8 +356,8 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                                 wordWrap: "break-word"
                             }}>
                                 {(() => {
-                                    if (msg.message.includes("http://localhost:5173/blog/")) {
-                                        const urlMatch = msg.message.match(/http:\/\/localhost:5173\/blog\/([a-zA-Z0-9_]+)/);
+                                    if (msg.message.includes(`${import.meta.env.VITE_FRONTEND_URL}/blog/`)) {
+                                        const urlMatch = msg.message.match(new RegExp(`${import.meta.env.VITE_FRONTEND_URL}/blog/([a-zA-Z0-9_]+)`));
                                         if (urlMatch) {
                                             const path = `/blog/${urlMatch[1]}`;
                                             return (

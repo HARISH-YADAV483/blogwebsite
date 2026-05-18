@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { io } from 'socket.io-client';
 
 const API_URL = import.meta.env.VITE_API_URL;
-const socket = io("http://localhost:5003");
+const socket = io(import.meta.env.VITE_SOCKET_URL);
 
 
 function Profile() {
@@ -258,7 +258,7 @@ function Profile() {
   <button 
     onClick={async () => {
         if (selectedChatters.length === 0) return;
-        const blogUrl = `http://localhost:5173/blog/${selectedBlogId}`;
+        const blogUrl = `${import.meta.env.VITE_FRONTEND_URL}/blog/${selectedBlogId}`;
         const messageContent = `Check out this blog: ${blogUrl}`;
         
         try {

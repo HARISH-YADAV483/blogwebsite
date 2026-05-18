@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios'
 import Navbar from "./Navbar";
 import { io } from 'socket.io-client';
-const socket = io("http://localhost:5003");
+const socket = io(import.meta.env.VITE_SOCKET_URL);
 const API_URL = import.meta.env.VITE_API_URL;
 function Home() {
     const [blogs, setBlogs] = useState([]);
@@ -34,13 +34,13 @@ function Home() {
     const uploadImage = async () => {
         const data = new FormData();
         data.append("file", image);
-        data.append("upload_preset", "blogchit_images"); // Cloudinary preset
-        data.append("cloud_name", "dqs0mesoe");
+        data.append("upload_preset", import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+        data.append("cloud_name", import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
 
         try {
             setLoading(true);
             const res = await axios.post(
-                "https://api.cloudinary.com/v1_1/dqs0mesoe/image/upload",
+                `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
                 data
             );
             setLoading(false);
@@ -259,7 +259,7 @@ function Home() {
   <button 
     onClick={async () => {
         if (selectedChatters.length === 0) return;
-        const blogUrl = `http://localhost:5173/blog/${selectedBlogId}`;
+        const blogUrl = `${import.meta.env.VITE_FRONTEND_URL}/blog/${selectedBlogId}`;
         const messageContent = `Check out this blog: ${blogUrl}`;
         
         try {
