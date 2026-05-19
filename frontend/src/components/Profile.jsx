@@ -9,8 +9,8 @@ const socket = io(import.meta.env.VITE_SOCKET_URL);
 
 
 function Profile() {
-    const name = localStorage.getItem("name");
-    const userId = localStorage.getItem("userId");
+    const name = JSON.parse(localStorage.getItem("user") || "{}").name;
+    const userId = JSON.parse(localStorage.getItem("user") || "{}").userId;
 
     const [blogcount, setblogcunt] = useState("");
     const [vericount, setvericunt] = useState("");

@@ -15,9 +15,9 @@ function Home() {
     const [chatters , setchatters] = useState([]);
       const [selectedBlogId, setSelectedBlogId] = useState(null);
     const [selectedChatters, setSelectedChatters] = useState([]);
-    const userId = localStorage.getItem("userId")
-    const [role, setrole] = useState(localStorage.getItem("role") || "");
-    const token = localStorage.getItem('token');
+    const userId = JSON.parse(localStorage.getItem("user") || "{}").userId
+    const [role, setrole] = useState(JSON.parse(localStorage.getItem("user") || "{}").role || "");
+    const token = JSON.parse(localStorage.getItem("user") || "{}").token;
 
     useEffect(() => {
         if (!token) {
@@ -55,8 +55,8 @@ function Home() {
         title: '',
         subtitle: '',
         content: '',
-        author: localStorage.getItem("name"),
-        authorId: localStorage.getItem("userId"),
+        author: JSON.parse(localStorage.getItem("user") || "{}").name,
+        authorId: JSON.parse(localStorage.getItem("user") || "{}").userId,
         image: '',
     });
 

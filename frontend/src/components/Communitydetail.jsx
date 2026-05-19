@@ -16,7 +16,7 @@ const [addMode, setAddMode] = useState(false);
 const [searchQuery, setSearchQuery] = useState("");
 const [searchResults, setSearchResults] = useState([]);
 
-const userId = localStorage.getItem("userId");
+const userId = JSON.parse(localStorage.getItem("user") || "{}").userId;
 const isMember = members.some(member => member._id === userId);
 
 const handleJoin = async () => {

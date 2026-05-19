@@ -16,34 +16,35 @@ import Register from "./components/Register";
 import Communitydetail from "./components/Communitydetail";
 import Login from "./components/Login";
 function ProtectedAdminRoute({ children }) {
-  const role = localStorage.getItem("role");
+  const userData = JSON.parse(localStorage.getItem("user") || "{}");
+  const role = userData.role || null;
   return role == "admin" ? children : <Navigate to="/" />;
 }
 
 function App() {
-const [unreadCount, setUnreadCount] = useState(0);
-const [unreadMsgCount, setUnreadMsgCount] = useState(0);
-const [unreadPerChatter, setUnreadPerChatter] = useState({});
-const [unreadChatters, setUnreadChatters] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadMsgCount, setUnreadMsgCount] = useState(0);
+  const [unreadPerChatter, setUnreadPerChatter] = useState({});
+  const [unreadChatters, setUnreadChatters] = useState([]);
 
   return (
     <>
-    <Navbar 
-        unreadCount = {unreadCount}  
-        setUnreadCount = {setUnreadCount} 
-        unreadMsgCount={unreadMsgCount} 
-        setUnreadMsgCount={setUnreadMsgCount} 
-        unreadPerChatter={unreadPerChatter} 
+      <Navbar
+        unreadCount={unreadCount}
+        setUnreadCount={setUnreadCount}
+        unreadMsgCount={unreadMsgCount}
+        setUnreadMsgCount={setUnreadMsgCount}
+        unreadPerChatter={unreadPerChatter}
         setUnreadPerChatter={setUnreadPerChatter}
         unreadChatters={unreadChatters}
         setUnreadChatters={setUnreadChatters}
-    />
+      />
       <Routes>
         <Route
           path="/admin"
           element={
             <ProtectedAdminRoute>
-              <Admin unreadCount = {unreadCount}  setUnreadCount = {setUnreadCount} />
+              <Admin unreadCount={unreadCount} setUnreadCount={setUnreadCount} />
             </ProtectedAdminRoute>
           }
         />
@@ -53,16 +54,16 @@ const [unreadChatters, setUnreadChatters] = useState([]);
         <Route path="/login" element={<Login />} />
         <Route path="/blog/:id" element={<Fullblog />} />
         <Route path="/community/:id" element={<Communitydetail />} />
-        <Route path="/profile/:id" element={<Searchedprofile  unreadCount = {unreadCount}  setUnreadCount = {setUnreadCount} />} />
-        <Route path="/profile" element={<Profile  />} />
-<Route path="/search" element={<Search  />} />
-        <Route path="/notti" element={<Notification  unreadCount = {unreadCount}  setUnreadCount = {setUnreadCount}  />} />
-<Route path="/messages" element={<Messages unreadPerChatter={unreadPerChatter} setUnreadPerChatter={setUnreadPerChatter} setUnreadMsgCount={setUnreadMsgCount} />} />
+        <Route path="/profile/:id" element={<Searchedprofile unreadCount={unreadCount} setUnreadCount={setUnreadCount} />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/notti" element={<Notification unreadCount={unreadCount} setUnreadCount={setUnreadCount} />} />
+        <Route path="/messages" element={<Messages unreadPerChatter={unreadPerChatter} setUnreadPerChatter={setUnreadPerChatter} setUnreadMsgCount={setUnreadMsgCount} />} />
         <Route path="/chat/:chatterId" element={<Chat unreadPerChatter={unreadPerChatter} setUnreadPerChatter={setUnreadPerChatter} setUnreadMsgCount={setUnreadMsgCount} />} />
         <Route path="/communiy/:communityId" element={<CommunityChat />} />
       </Routes>
     </>
-  ) 
+  )
 }
 
 export default App

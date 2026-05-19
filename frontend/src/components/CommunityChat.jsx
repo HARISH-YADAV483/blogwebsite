@@ -9,7 +9,7 @@ const socket = io(import.meta.env.VITE_SOCKET_URL);
 function CommunityChat() {
     const { communityId } = useParams();
     const navigate = useNavigate();
-    const userId = localStorage.getItem("userId");
+    const userId = JSON.parse(localStorage.getItem("user") || "{}").userId;
     
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");

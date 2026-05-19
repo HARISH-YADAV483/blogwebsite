@@ -5,7 +5,7 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL;
 
 function Messages({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
-    const userId = localStorage.getItem("userId");
+    const userId = JSON.parse(localStorage.getItem("user") || "{}").userId;
     const [chatters, setChatters] = useState([]);
     const [loading, setLoading] = useState(true);
 

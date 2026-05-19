@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Navbar from "./Navbar"
 const API_URL = import.meta.env.VITE_API_URL;
 function Notification({unreadCount, setUnreadCount}) {
-     const userId = localStorage.getItem("userId");
+     const userId = JSON.parse(localStorage.getItem("user") || "{}").userId;
     const [notifications, setNotifications] = useState([]);
     const [oldnotifications, setoldNotifications] = useState([]);
     const[message , setmessage] = useState("")

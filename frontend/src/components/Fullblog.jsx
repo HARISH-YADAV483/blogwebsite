@@ -6,12 +6,12 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 function Fullblog() {
     const { id } = useParams();
-    const userId = localStorage.getItem("userId");
+    const userId = JSON.parse(localStorage.getItem("user") || "{}").userId;
     const [blog, setBlog] = useState(null);
     const [loading, setLoading] = useState(true);
     const [comment, setcomment] = useState("");
     const [comments, setcomments] = useState([]);
-    const name = localStorage.getItem("name")
+    const name = JSON.parse(localStorage.getItem("user") || "{}").name
 
     const fetchBlog = async () => {
         try {

@@ -9,8 +9,8 @@ const socket = io(import.meta.env.VITE_SOCKET_URL);
 function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
     const { chatterId } = useParams();
     const navigate = useNavigate();
-    const userId = localStorage.getItem("userId");
-    const name = localStorage.getItem("name");
+    const userId = JSON.parse(localStorage.getItem("user") || "{}").userId;
+    const name = JSON.parse(localStorage.getItem("user") || "{}").name;
     
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");

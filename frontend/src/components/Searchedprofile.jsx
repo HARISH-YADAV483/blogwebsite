@@ -15,8 +15,8 @@ function Searchedprofile({ unreadCount, setUnreadCount }) {
     // UI state for showing lists
     const [showFollowers, setShowFollowers] = useState(false);
     const [showFollowing, setShowFollowing] = useState(false);
-    const name = localStorage.getItem("name");
-    const userId = localStorage.getItem("userId");
+    const name = JSON.parse(localStorage.getItem("user") || "{}").name;
+    const userId = JSON.parse(localStorage.getItem("user") || "{}").userId;
     const getprofile = async () => {
         try {
             const res = await axios.post(`${API_URL}/searchprofile`, { id, name });

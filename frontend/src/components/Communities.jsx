@@ -6,7 +6,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 function Communities() {
     const navigate = useNavigate();
-    const userId = localStorage.getItem("userId");
+    const userId = JSON.parse(localStorage.getItem("user") || "{}").userId;
     const [joinedCommunities, setJoinedCommunities] = useState([]);
     const [popularCommunities, setPopularCommunities] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");

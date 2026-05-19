@@ -12,7 +12,8 @@ function Login() {
         pass: ''
     });
     const navigate = useNavigate();
-    const [token, setToken] = useState(localStorage.getItem('token') || null);
+    const userData = JSON.parse(localStorage.getItem("user") || "{}");
+    const [token, setToken] = useState(userData.token || null);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -25,10 +26,7 @@ function Login() {
             .then(res => {
                 setmessage(res.data.message);
                 if (res.data.token) {
-                    localStorage.setItem("token", res.data.token);
-                    localStorage.setItem("name", res.data.name);
-                    localStorage.setItem("role", res.data.role);
-                    localStorage.setItem("userId", res.data.userId);
+                    localStorage.setItem("user", JSON.stringify({ token: res.data.token, name: res.data.name, role: res.data.role, userId: res.data.userId }));
                     if (typeof socket !== 'undefined') {
                         socket.emit("setup_user", res.data.name);
                     }

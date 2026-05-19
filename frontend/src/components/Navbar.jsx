@@ -9,19 +9,21 @@ const API_URL = import.meta.env.VITE_API_URL;
 const socket = io(import.meta.env.VITE_SOCKET_URL);
 
 function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount, unreadPerChatter, setUnreadPerChatter, unreadChatters, setUnreadChatters }) {
-    const name = localStorage.getItem("name");
-    const userId = localStorage.getItem("userId"); 
-   
+    const userData = JSON.parse(localStorage.getItem("user") || "{}");
+    const name = userData.name || null;
+    const userId = userData.userId || null;
     const [message , setmessage] = useState("");
-    const [token, setToken] = useState(localStorage.getItem('token') || null);
-     const [isLoggedIn, setIsLoggedIn] = useState(!!token);
-    const [role, setrole] = useState(localStorage.getItem("role") || "");
+    const [token, setToken] = useState(userData.token || null);
+    const [isLoggedIn, setIsLoggedIn] = useState(!!token);
+    const [role, setrole] = useState(userData.role || "");
     const navigate = useNavigate();
     useEffect(() => {
         if (token) {
-            localStorage.setItem('token', token);
+            const userData = JSON.parse(localStorage.getItem("user") || "{}");
+            userData.token = token;
+            localStorage.setItem("user", JSON.stringify(userData));
         } else {
-            localStorage.removeItem('token');
+            localStorage.removeItem('user');
         }
     }, [token]);
 
@@ -31,9 +33,7 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
                 setmessage(res.data.message);
                 setToken(null);
                 setIsLoggedIn(false);
-                localStorage.removeItem("name");
-                localStorage.removeItem("userId");
-                localStorage.removeItem("role");
+                
                    navigate("/");
             })
             .catch(err => {
