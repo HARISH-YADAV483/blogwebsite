@@ -65,8 +65,9 @@ function Searchedprofile({ unreadCount, setUnreadCount }) {
                     <button 
                         onClick={async () => {
                             try {
-                                await axios.post(`${API_URL}/addchatter`, { userId, chatterId: id });
-                                window.location.href = `/chat/${id}`;
+                                await axios.post(`${API_URL}/addchatter`, { userId, chatterId: id })
+                                .then(()=>{   window.location.href = `/chat/${id}`})
+                             
                             } catch (err) {
                                 console.error("Error starting conversation:", err);
                             }
