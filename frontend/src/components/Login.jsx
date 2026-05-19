@@ -47,6 +47,7 @@ function Login() {
                 <input type="password" name="pass" onChange={handleChange} value={formdata.pass} placeholder="your password" />
                 <button type="submit">login</button>
             </form>
+            <Link to="/forgotpass">Forgot password</Link>
             {message && <p>{message}</p>}
             <p>Don't have an account? <Link to="/register">Register</Link></p>
         </>

@@ -15,6 +15,7 @@ import CommunityChat from "./components/CommunityChat";
 import Register from "./components/Register";
 import Communitydetail from "./components/Communitydetail";
 import Login from "./components/Login";
+import Forget from "./components/Forgetpassword";
 function ProtectedAdminRoute({ children }) {
   const userData = JSON.parse(localStorage.getItem("user") || "{}");
   const role = userData.role || null;
@@ -57,6 +58,7 @@ function App() {
         <Route path="/profile/:id" element={<Searchedprofile unreadCount={unreadCount} setUnreadCount={setUnreadCount} />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/forgotpass" element={<Forget />} />
         <Route path="/notti" element={<Notification unreadCount={unreadCount} setUnreadCount={setUnreadCount} />} />
         <Route path="/messages" element={<Messages unreadPerChatter={unreadPerChatter} setUnreadPerChatter={setUnreadPerChatter} setUnreadMsgCount={setUnreadMsgCount} />} />
         <Route path="/chat/:chatterId" element={<Chat unreadPerChatter={unreadPerChatter} setUnreadPerChatter={setUnreadPerChatter} setUnreadMsgCount={setUnreadMsgCount} />} />

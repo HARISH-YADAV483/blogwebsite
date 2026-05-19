@@ -7,7 +7,6 @@ import { io } from 'socket.io-client';
 const API_URL = import.meta.env.VITE_API_URL;
 const socket = io(import.meta.env.VITE_SOCKET_URL);
 
-
 function Profile() {
     const name = JSON.parse(localStorage.getItem("user") || "{}").name;
     const userId = JSON.parse(localStorage.getItem("user") || "{}").userId;
@@ -26,7 +25,26 @@ function Profile() {
     const [chatters , setchatters] = useState([]);
     const [selectedBlogId, setSelectedBlogId] = useState(null);
     const [selectedChatters, setSelectedChatters] = useState([]);
-    
+    const [saved, setSaved] = useState([]);
+    const [dob, setdob] = useState("");
+    const [bio , setbio] = useState("");
+    const [email , setemail] = useState("");
+    const [username , setusername] = useState("");
+    const [showpersonal , setshowpersonal] = useState(false);
+    const [showpass, setshowpass] = useState(false);
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [otp, setOtp] = useState("");
+    const [otpSent, setOtpSent] = useState(false);
+    const [loadingOtp, setLoadingOtp] = useState(false);
+    const [loadingSave, setLoadingSave] = useState(false);
+    const [formData, setFormData] = useState({
+        name: "",
+        dob: "",
+        bio: "",
+        email: ""
+    });
+
     const getprofile = async () => {
         await axios.post(`${API_URL}/getprofile`, { name })
             .then(res => {
@@ -39,16 +57,120 @@ function Profile() {
                 setfollowers(res.data.followers || []);
                 setfollowing(res.data.following || []);
                 setchatters(res.data.chatters || []);
+                setSaved(res.data.saved || []);
+                setbio(res.data.bio || "blogCHIT user");
+                setdob(res.data.dob || "");
+                setemail(res.data.email || "");
+                setusername(res.data.username || "");
+                setFormData({
+                    name: res.data.username || "",
+                    dob: res.data.dob || "777",
+                    bio: res.data.bio || "blogCHIT user",
+                    email: res.data.email || "fghj"
+                });
             })
             .catch(err => {
                 console.error(err);
                 console.log("unable to fetch count ");
-
             })
-
-
-
     }
+
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const changedetails = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await axios.post(`${API_URL}/changedetails`, {
+                userId,
+                name: formData.name,
+                dob: formData.dob,
+                bio: formData.bio
+            });
+
+            if (res.data.success) {
+                // Update local states
+                setusername(formData.name);
+                setdob(formData.dob);
+                setbio(formData.bio);
+
+                // Update localStorage so the new name is used across the app
+                const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+                storedUser.name = formData.name;
+                localStorage.setItem("user", JSON.stringify(storedUser));
+
+                alert(res.data.message || "Profile updated successfully!");
+                setshowpersonal(false);
+            } else {
+                alert(res.data.message || "Failed to update profile.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert(err.response?.data?.message || "An error occurred while updating details.");
+        }
+    };
+
+    const handleSendOtp = async () => {
+        if (!email) {
+            alert("No email associated with this account or profile is still loading.");
+            return;
+        }
+        setLoadingOtp(true);
+        try {
+            const res = await axios.post(`${API_URL}/send-password-otp`, { userId });
+            if (res.data.success) {
+                setOtpSent(true);
+                alert(res.data.message);
+            } else {
+                alert(res.data.message || "Failed to send OTP.");
+            }
+        } catch (err) {
+            console.error("Error sending OTP:", err);
+            alert(err.response?.data?.message || "An error occurred while sending OTP.");
+        } finally {
+            setLoadingOtp(false);
+        }
+    };
+
+    const changepassword = async (e) => {
+        e.preventDefault();
+        if (!newPassword || !confirmPassword || !otp) {
+            alert("All fields (New Password, Confirm Password, OTP) are required.");
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            alert("New Password and Confirm Password do not match.");
+            return;
+        }
+        setLoadingSave(true);
+        try {
+            const res = await axios.post(`${API_URL}/changepassword`, {
+                userId,
+                newPassword,
+                otp
+            });
+            if (res.data.success) {
+                alert(res.data.message || "Password changed successfully!");
+                // Clear fields
+                setNewPassword("");
+                setConfirmPassword("");
+                setOtp("");
+                setOtpSent(false);
+                setshowpass(false);
+            } else {
+                alert(res.data.message || "Failed to change password.");
+            }
+        } catch (err) {
+            console.error("Error changing password:", err);
+            alert(err.response?.data?.message || "An error occurred while changing password.");
+        } finally {
+            setLoadingSave(false);
+        }
+    };
 
 
     //calculations....
@@ -122,11 +244,14 @@ function Profile() {
         <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto", fontFamily: "'Inter', sans-serif" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
                 <div>
-                    <h1>{name}</h1>
+                    <h1>{username}</h1>
                     {image && (
                         <img src={image} alt="" style={{ width: "150px", height: "150px", borderRadius: "50%", objectFit: "cover", marginBottom: "15px" }} />
                     )}
+                 
                 </div>
+                <p>{bio}</p>
+
             </div>
             no. of blogs submitted : {blogcount}
             verified: {vericount}
@@ -225,12 +350,17 @@ function Profile() {
                     <hr />
                 </div>))}
             <h2>your liked blog : </h2>
-            {likes.map((id) => (<div key={id}>
-                <Link to={`/blog/${id}`}>{id}</Link>
+            {likes.map((blog) => (<div key={blog._id}>
+                <Link to={`/blog/${blog._id}`}>{blog.title}</Link>
             </div>))}
             <h2>your commented blog : </h2>
-            {commentblog.map((id) => (<div key={id}>
-                <Link to={`/blog/${id}`}>{id}</Link>
+            {commentblog.map((blog) => (<div key={blog._id}>
+                <Link to={`/blog/${blog._id}`}>{blog.title}</Link>
+            </div>))}
+            <hr />
+            <h2>your saved blog : </h2>
+            {saved.map((blog) => (<div key={blog._id}>
+                <Link to={`/blog/${blog._id}`}>{blog.title}</Link>
             </div>))}
             <hr />
             <hr />
@@ -306,6 +436,112 @@ function Profile() {
                 ))
             )}
         </div>
+       <button onClick={() =>{setshowpersonal(!showpersonal)}}>{!showpersonal?("personaldetails"):("close")}</button>
+       {showpersonal && (
+  <div>
+    <h2>Personal Details</h2>
+
+    <form onSubmit={changedetails}>
+      <input
+        type="text"
+        name="name"
+        value={formData.name}
+        onChange={handleChange}
+        placeholder={formData.name}
+      />
+
+      <br /><br />
+
+      <input
+        type="text"
+        name="dob"
+        value={formData.dob}
+        onChange={handleChange}
+        placeholder={formData.dob}
+      />
+      <input
+        type="text"
+        name="bio"
+        value={formData.bio}
+        onChange={handleChange}
+        placeholder={formData.bio}
+      />
+   
+
+      <br /><br />
+      <button
+        type="submit"
+      >
+        Save
+      </button>
+    </form>
+    <div style={{ marginTop: "10px", color: "#666" }}>
+      <strong>Email state:</strong> {email || "(no email stored in database)"}
+    </div>
+  </div>
+)}
+       <button onClick={() =>{setshowpass(!showpass)}}>{!showpass?("Password and security"):("close")}</button>
+       {showpass && (
+  <div>
+    <h2>security</h2>
+    <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Doloremque veniam vel tenetur odio cupiditate excepturi, sapiente natus itaque ratione deserunt, sint consectetur, exercitationem velit officiis iusto adipisci. Sunt labore quis molestiae pariatur exercitationem, assumenda recusandae.</p>
+    
+    <div>
+      <strong>Registered Email:</strong> {email || "(No email stored in database)"}
+      <button 
+        type="button" 
+        onClick={handleSendOtp} 
+        disabled={loadingOtp}
+      >
+        {loadingOtp ? "Sending..." : "Send OTP"}
+      </button>
+    </div>
+    <br />
+
+    <h2>change password</h2>
+    <form onSubmit={changepassword}>
+      <input
+        type="password"
+        value={newPassword}
+        onChange={(e) => setNewPassword(e.target.value)}
+        placeholder="Enter new password"
+        required
+      />
+      <br /><br />
+      
+      confirm new password
+      <input
+        type="password"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+        placeholder="Confirm new password"
+        required
+      />
+      <br /><br />
+
+      entre otp to change your password
+      <input
+        type="text"
+        maxLength="6"
+        value={otp}
+        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+        placeholder="entre otp sent to your email"
+        required
+      />
+      <br /><br />
+
+      <button
+        type="submit"
+        disabled={loadingSave || !otpSent}
+      >
+        {loadingSave ? "Saving..." : "Save"}
+      </button>
+    </form>
+    <div style={{ marginTop: "10px", color: "#666" }}>
+      <strong>Email state:</strong> {email || "(no email stored in database)"}
+    </div>
+  </div>
+)}
     </>
     )
 }

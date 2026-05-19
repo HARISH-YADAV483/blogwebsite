@@ -130,6 +130,18 @@ function Home() {
                 setmessage("Unable to like blog");
             })
     }
+    const save = async (id) => {
+        await axios.post(`${API_URL}/save`, { id, userId })
+            .then(res => {
+                setmessage(res.data.message);
+                
+            })
+            .catch(err => {
+                console.error(err);
+                console.log("unable to save ");
+                setmessage("Unable to save blog");
+            })
+    }
     const getChatters = async () => {
         try {
             const res = await axios.get(`${API_URL}/chatters/${userId}`);
@@ -234,6 +246,7 @@ function Home() {
                            <button onClick={() => setSelectedBlogId(selectedBlogId === blog._id ? null : blog._id)}>
   {selectedBlogId === blog._id ? "cancel" : "share"}
 </button>
+<button onClick={() => save(blog._id)}>save</button>
                         <hr />
                     </div>))}
                      {selectedBlogId && (

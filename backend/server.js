@@ -39,7 +39,10 @@ const UserSchema = new mongoose.Schema({
     image: String,
     chatters:Array,
     unreadChatters: Array,
-    communities: Array
+    communities: Array,
+    savedblogs: Array,
+    bio: String,
+    dob: String
 });
 const User = mongoose.model("User", UserSchema);
 
@@ -395,7 +398,12 @@ app.post("/regi", async (req, res) => {
 //login
 app.post("/logi", async (req, res) => {
     const { name, pass } = req.body;
-    const exist = await User.findOne({ name });
+   const exist = await User.findOne({
+  $or: [
+    { name: name },
+    { email: name }
+  ]
+});
     if (!exist) {
         res.json({ message: "  such username doesnt exist   " })
     }
@@ -605,6 +613,57 @@ app.post("/like", async (req, res) => {
         });
     }
 });
+//save
+app.post("/save", async (req, res) => {
+    try {
+        const { id, userId } = req.body;
+
+        const blog = await Blog.findById(id);
+        if (!blog) {
+            return res.status(404).json({
+                message: "Blog not found"
+            });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        // If already saved → do nothing
+        if (user.savedblogs.includes(id)) {
+           
+
+            return res.json({
+                message: "saved successfully",
+                
+            });
+        }
+
+        // If not liked → like
+        user.savedblogs.push(id);
+      
+
+        await user.save();
+  
+
+       
+       
+
+        res.json({
+            message: "saved successfully",
+          
+        });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            message: "Unable to save"
+        });
+    }
+});
 //comments
 app.post("/comments", async (req, res) => {
     try {
@@ -700,8 +759,13 @@ app.post("/getprofile", async (req, res) => {
         const veriblogs = blogs.filter(blog => blog.status === "verified");
         const vericount = veriblogs.length;
         const blogcount = blogs.length;
-        const liked = user.blogliked || [];
-        const commented = user.blogcommented || [];
+        const likedIds = user.blogliked || [];
+        const commentedIds = user.blogcommented || [];
+        const savedIds = user.savedblogs || [];
+
+        const liked = await Blog.find({ _id: { $in: likedIds } }, '_id title');
+        const commented = await Blog.find({ _id: { $in: commentedIds } }, '_id title');
+        const saved = await Blog.find({ _id: { $in: savedIds } }, '_id title');
         const image = user.image || "";
         
         const chatterIds = user.chatters || [];
@@ -720,9 +784,14 @@ app.post("/getprofile", async (req, res) => {
             commented,
             image,
             name: userName,
+            username: userName,
             followers: followerUsers,
             following: followingUsers,
-            chatters
+            chatters,
+            saved,
+            bio: user.bio || "",
+            dob: user.dob || "",
+            email: user.email || ""
         });
 
     } catch (error) {
@@ -731,6 +800,219 @@ app.post("/getprofile", async (req, res) => {
         });
     }
 });
+
+app.post("/changedetails", async (req, res) => {
+    try {
+        const { userId, name, dob, bio } = req.body;
+        if (!userId) {
+            return res.status(400).json({ success: false, message: "User ID is required" });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        // If the name is being changed, check if it's already taken
+        if (name && name !== user.name) {
+            const existingUser = await User.findOne({ name });
+            if (existingUser) {
+                return res.status(400).json({ success: false, message: "Username is already taken" });
+            }
+
+            // Also update the author field in the User's blogs!
+            await Blog.updateMany({ authorId: userId }, { author: name });
+
+            user.name = name;
+        }
+
+        if (dob !== undefined) user.dob = dob;
+        if (bio !== undefined) user.bio = bio;
+
+        await user.save();
+
+        res.json({ success: true, message: "Profile updated successfully!" });
+    } catch (error) {
+        console.error("Error updating profile details:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+});
+
+app.post("/send-password-otp", async (req, res) => {
+    try {
+        const { userId } = req.body;
+        if (!userId) {
+            return res.status(400).json({ success: false, message: "User ID is required" });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const email = user.email;
+        if (!email) {
+            return res.status(400).json({ success: false, message: "No email associated with this account" });
+        }
+
+        const otp = generateOTP();
+        otpStorage[email] = otp;
+
+        await resend.emails.send({
+            from: "otp@harishpuhaniya.online",
+            to: email,
+            subject: "Password Reset Verification Code",
+            html: `
+                <div style="font-family: Arial; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+                    <h2 style="color: #333;">Password Reset Request</h2>
+                    <p>Hello ${user.name},</p>
+                    <p>You requested to change your password. Please use the verification code below to complete the request:</p>
+                    <div style="background: #f4f4f4; padding: 10px; font-size: 24px; font-weight: bold; letter-spacing: 2px; text-align: center; margin: 20px 0;">
+                        ${otp}
+                    </div>
+                    <p>This OTP expires in 5 minutes.</p>
+                    <p>If you did not request this, please ignore this email.</p>
+                </div>
+            `,
+        });
+
+        res.json({ success: true, message: "Verification code sent to your registered email!" });
+    } catch (error) {
+        console.error("Error sending password OTP:", error);
+        res.status(500).json({ success: false, message: "Failed to send OTP code" });
+    }
+});
+app.post("/send-forgot-otp", async (req, res) => {
+    try {
+        const { namee } = req.body;
+        if (!namee) {
+            return res.status(400).json({ success: false, message: "username or email is required" });
+        }
+
+        const user = await User.findOne({
+  $or: [
+    { name: namee },
+    { email: namee }
+  ]
+});
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const email = user.email;
+        if (!email) {
+            return res.status(400).json({ success: false, message: "No email associated with this account" });
+        }
+
+        const otp = generateOTP();
+        otpStorage[email] = otp;
+
+        await resend.emails.send({
+            from: "otp@harishpuhaniya.online",
+            to: email,
+            subject: "Password Reset Verification Code",
+            html: `
+                <div style="font-family: Arial; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+                    <h2 style="color: #333;">Password Reset Request</h2>
+                    <p>Hello ${user.name},</p>
+                    <p>You requested to change your password. Please use the verification code below to complete the request:</p>
+                    <div style="background: #f4f4f4; padding: 10px; font-size: 24px; font-weight: bold; letter-spacing: 2px; text-align: center; margin: 20px 0;">
+                        ${otp}
+                    </div>
+                    <p>This OTP expires in 5 minutes.</p>
+                    <p>If you did not request this, please ignore this email.</p>
+                </div>
+            `,
+        });
+
+        res.json({ success: true, message: "Verification code sent to your registered email!" });
+    } catch (error) {
+        console.error("Error sending password OTP:", error);
+        res.status(500).json({ success: false, message: "Failed to send OTP code" });
+    }
+});
+
+app.post("/forgot-password-reset", async (req, res) => {
+    try {
+        const { namee, newPassword, otp } = req.body;
+        if (!namee || !newPassword || !otp) {
+            return res.status(400).json({ success: false, message: "All fields (namee, newPassword, otp) are required" });
+        }
+
+        const user = await User.findOne({
+            $or: [
+                { name: namee },
+                { email: namee }
+            ]
+        });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const email = user.email;
+        if (!email) {
+            return res.status(400).json({ success: false, message: "No email associated with this account" });
+        }
+
+        // Verify OTP
+        const storedOtp = otpStorage[email];
+        if (!storedOtp || storedOtp.toString().trim() !== otp.toString().trim()) {
+            return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
+        }
+
+        // Update password
+        user.pass = newPassword;
+        await user.save();
+
+        // Clear OTP from storage
+        delete otpStorage[email];
+
+        res.json({ success: true, message: "Password reset successfully!" });
+    } catch (error) {
+        console.error("Error in forgot-password-reset:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+});
+
+
+app.post("/changepassword", async (req, res) => {
+    try {
+        const { userId, newPassword, otp } = req.body;
+        if (!userId || !newPassword || !otp) {
+            return res.status(400).json({ success: false, message: "All fields (userId, newPassword, otp) are required" });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const email = user.email;
+        if (!email) {
+            return res.status(400).json({ success: false, message: "No email associated with this account" });
+        }
+
+        // Verify OTP
+        const storedOtp = otpStorage[email];
+        if (!storedOtp || storedOtp.toString().trim() !== otp.toString().trim()) {
+            return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
+        }
+
+        // Update password
+        user.pass = newPassword;
+        await user.save();
+
+        // Clear OTP from storage
+        delete otpStorage[email];
+
+        res.json({ success: true, message: "Password updated successfully!" });
+    } catch (error) {
+        console.error("Error changing password:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+});
+
+
 app.post("/searchprofile", async (req, res) => {
     try {
         const { id, name: currentUserName } = req.body;
