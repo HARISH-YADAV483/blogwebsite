@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
+import "./writeblog.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -64,8 +65,16 @@ function Fullblog() {
                 <strong>AUTHOR:</strong> {blog.author}
             </p>
             <hr />
-            <div className="blog-content">
-                {blog.content}
+            {blog.category && (
+                <div style={{ backgroundColor: "#333", color: "white", padding: "4px 8px", borderRadius: "4px", display: "inline-block", marginBottom: "12px", marginTop: "12px", fontSize: "14px" }}>
+                    {blog.category}
+                </div>
+            )}
+            <hr />
+            <div 
+                className="blog-content tiptap-editor-content" 
+                dangerouslySetInnerHTML={{ __html: blog.content }}
+            >
             </div>
 
             <div className="heart-container" title="Like" onClick={() => like(blog._id)}>

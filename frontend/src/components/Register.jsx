@@ -11,8 +11,11 @@ function Register() {
     const [image, setimage] = useState(null);
     const [message, setmessage] = useState(null);
     const [formdata, setformdata] = useState({
+        username: '',
         name: '',
-        pass: ''
+        pass: '',
+        dob: '',
+        bio: ''
     });
     const [otp, setotp] = useState("");
     const [isverified, setisverified] = useState(false);
@@ -197,6 +200,13 @@ function Register() {
 
     const handleregister = async (e) => {
         e.preventDefault();
+
+        const usernameRegex = /^[a-zA-Z0-9._]{1,30}$/;
+        if (!usernameRegex.test(formdata.username)) {
+            setmessage("Username must be 1-30 characters long and contain only letters, numbers, underscores, or periods.");
+            return;
+        }
+
         let imageUrl = "";
         if (image) {
             imageUrl = await uploadImage();
@@ -238,8 +248,11 @@ function Register() {
                 </>
             ) : (
                 <form onSubmit={handleregister} method="post">
-                    <input type="text" name="name" placeholder="usermame" onChange={handleChange} value={formdata.name} />
+                    <input type="text" name="username" placeholder="usermame" onChange={handleChange} value={formdata.username} />
+                    <input type="text" name="name" placeholder="mame" onChange={handleChange} value={formdata.name} />
                     <input type="text" name="pass" placeholder="create password" onChange={handleChange} value={formdata.pass} />
+                    <input type="text" name="bio" placeholder="bio" onChange={handleChange} value={formdata.bio} />
+                    <input type="text" name="dob" placeholder="dob" onChange={handleChange} value={formdata.dob} />
                     {previewUrl ? (
                         <div style={{ display: "flex", alignItems: "center", gap: "15px", padding: "10px", border: "1px solid #ddd", borderRadius: "8px", marginBottom: "15px", background: "rgba(255,255,255,0.05)" }}>
                             <img src={previewUrl} alt="Cropped preview" style={{ width: "50px", height: "50px", borderRadius: "50%", objectFit: "cover", border: "2px solid #007bff" }} />

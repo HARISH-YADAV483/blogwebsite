@@ -28,7 +28,7 @@ const connectdb = () => {
 connectdb();
 
 const UserSchema = new mongoose.Schema({
-    name: String,
+    username: String,
     pass: String,
     email: String,
     role: String,
@@ -42,7 +42,8 @@ const UserSchema = new mongoose.Schema({
     communities: Array,
     savedblogs: Array,
     bio: String,
-    dob: String
+    dob: String,
+    name:String
 });
 const User = mongoose.model("User", UserSchema);
 
@@ -56,7 +57,9 @@ const BlogSchema = new mongoose.Schema({
     likes: Number,
     comments: Array,
     views: Number,
-    image: String
+    image: String,
+    category: String,
+    contentImages: [String]
 });
 const Blog = mongoose.model("Blog", BlogSchema);
 
@@ -380,13 +383,13 @@ app.post("/verifyotp", (req, res) => {
 
 //registration
 app.post("/regi", async (req, res) => {
-    const { name, pass, email, image } = req.body;
-    const exist = await User.findOne({ name });
+    const { name, pass, email, image , dob, bio , username} = req.body;
+    const exist = await User.findOne({ username });
     if (exist) {
         res.json({ message: "username already exist " })
     }
     else {
-        const newUser = new User({ name, pass, email, role: "user", image });
+        const newUser = new User({ username, pass, email, role: "user", image , bio , dob, name  });
         await newUser.save();
         res.json({
             message: "registration successful....",
@@ -400,7 +403,7 @@ app.post("/logi", async (req, res) => {
     const { name, pass } = req.body;
    const exist = await User.findOne({
   $or: [
-    { name: name },
+    { username: name },
     { email: name }
   ]
 });
@@ -433,8 +436,8 @@ app.post("/logout", (req, res) => {
 
 //create
 app.post("/blog", async (req, res) => {
-    const { title, subtitle, content, author, authorId, image } = req.body;
-    const newBlog = new Blog({ title, subtitle, content, status: "Pending", author, authorId, likes: 0, image });
+    const { title, subtitle, content, author, authorId, image, category, contentImages } = req.body;
+    const newBlog = new Blog({ title, subtitle, content, status: "Pending", author, authorId, likes: 0, image, category, contentImages: contentImages || [] });
     await newBlog.save();
     res.json({ message: "blog submission  successful...." });
 

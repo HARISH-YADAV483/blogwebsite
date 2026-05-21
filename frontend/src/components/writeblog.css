@@ -1,0 +1,614 @@
+/* ═══════════════════════════════════════════════════
+   WRITE BLOG – PREMIUM DARK THEME
+   ═══════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap');
+
+/* ── Page Container ─────────────────────────────── */
+.write-blog-container {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+    font-family: 'Inter', sans-serif;
+    color: #e2e8f0;
+    min-height: 100vh;
+}
+
+.write-blog-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #f97316, #fb923c, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 36px;
+    letter-spacing: -0.5px;
+}
+.category-dropdown-list{
+    color: #000000;
+    line-height: 18px;
+    height: 300px;
+    overflow: scroll;
+}
+
+.message-alert {
+    padding: 14px 20px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    border-left: 4px solid;
+    animation: slideIn 0.3s ease;
+}
+.message-alert.success {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: #22c55e;
+    color: #86efac;
+}
+.message-alert.error {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    color: #fca5a5;
+}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Form ───────────────────────────────────────── */
+.write-blog-form {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #000000;
+}
+
+.form-input,
+.form-textarea {
+    background: rgba(241, 242, 245, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 10px;
+    color: #1d1d1d;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    padding: 13px 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+.form-input::placeholder,
+.form-textarea::placeholder {
+    color: #475569;
+}
+.form-input:focus,
+.form-textarea:focus {
+    border-color: rgba(249, 115, 22, 0.5);
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+.form-textarea {
+    min-height: 200px;
+    resize: vertical;
+}
+
+.file-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+.file-input-real {
+    display: none;
+}
+.file-input-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 10px 18px;
+    background: rgba(249, 115, 22, 0.1);
+    color: #f97316;
+    border: 1px solid rgba(249, 115, 22, 0.4);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    user-select: none;
+}
+.file-input-button:hover {
+    background: rgba(249, 115, 22, 0.18);
+    border-color: #f97316;
+    transform: translateY(-1px);
+}
+.file-name-preview {
+    font-size: 0.82rem;
+    color: #64748b;
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 280px;
+}
+
+/* ── Submit Button ──────────────────────────────── */
+.submit-btn {
+    align-self: flex-start;
+    padding: 13px 36px;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+    box-shadow: 0 4px 20px rgba(249, 115, 22, 0.35);
+}
+.submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(249, 115, 22, 0.45);
+}
+.submit-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ═══════════════════════════════════════════════════
+   TIPTAP EDITOR
+   ═══════════════════════════════════════════════════ */
+
+.tiptap-wrapper {
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.08), inset 0 1px 0 rgba(255,255,255,0.04);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.tiptap-wrapper:focus-within {
+    border-color: rgba(249, 115, 22, 0.4);
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+/* ── Toolbar ────────────────────────────────────── */
+.tiptap-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px;
+    padding: 8px 10px;
+    background: rgba(2, 8, 23, 0.7);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(8px);
+}
+
+/* ── Toolbar Buttons ────────────────────────────── */
+.tiptap-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    height: 30px;
+    padding: 0 6px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, transform 0.1s;
+    user-select: none;
+    white-space: nowrap;
+}
+.tiptap-btn:hover:not(.tiptap-btn--disabled) {
+    background: rgba(249, 115, 22, 0.12);
+    color: #f97316;
+    transform: translateY(-1px);
+}
+.tiptap-btn--active {
+    background: rgba(249, 115, 22, 0.2) !important;
+    color: #f97316 !important;
+}
+.tiptap-btn--disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+.tiptap-btn svg {
+    pointer-events: none;
+}
+
+/* ── Separator ──────────────────────────────────── */
+.tiptap-sep {
+    width: 1px;
+    height: 22px;
+    background: rgba(148, 163, 184, 0.15);
+    margin: 0 4px;
+    flex-shrink: 0;
+}
+
+/* ── Selects ────────────────────────────────────── */
+.tiptap-select {
+    height: 30px;
+    padding: 0 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    background: rgba(2, 8, 23, 0.8);
+    color: #94a3b8;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    max-width: 160px;
+    transition: border-color 0.15s, color 0.15s;
+}
+.tiptap-select--size {
+    max-width: 78px;
+}
+.tiptap-select:hover,
+.tiptap-select:focus {
+    border-color: rgba(249, 115, 22, 0.4);
+    color: #f97316;
+}
+.tiptap-select option {
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+/* ── Color Pickers ──────────────────────────────── */
+.tiptap-color-picker-wrapper {
+    position: relative;
+}
+.tiptap-color-wrap {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    padding: 0 4px;
+    height: 30px;
+    border-radius: 6px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    background: rgba(2, 8, 23, 0.6);
+    transition: border-color 0.15s;
+}
+.tiptap-color-wrap:hover {
+    border-color: rgba(249, 115, 22, 0.4);
+}
+.tiptap-color-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #94a3b8;
+    line-height: 1;
+    padding: 2px;
+}
+.tiptap-color-swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(148, 163, 184, 0.25);
+    flex-shrink: 0;
+    transition: transform 0.15s;
+}
+.tiptap-color-wrap:hover .tiptap-color-swatch {
+    transform: scale(1.2);
+}
+
+/* ── Color Popup Dropdown ── */
+.tiptap-color-popup {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 6px;
+    background: #1e293b;
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    z-index: 50;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    animation: colorPopupIn 0.15s ease;
+}
+@keyframes colorPopupIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.tiptap-color-popup-preview {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+.tiptap-color-popup-input {
+    width: 48px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: transparent;
+    padding: 0;
+}
+.tiptap-color-popup-input::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+.tiptap-color-popup-input::-webkit-color-swatch {
+    border: 2px solid rgba(148, 163, 184, 0.25);
+    border-radius: 6px;
+}
+.tiptap-color-confirm-btn {
+    padding: 5px 14px;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 2px 10px rgba(249, 115, 22, 0.3);
+    white-space: nowrap;
+}
+.tiptap-color-confirm-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.45);
+}
+
+.tiptap-hidden-input {
+    display: none;
+}
+
+/* ── Image Hint ─────────────────────────────────── */
+.tiptap-image-hint {
+    font-size: 0.75rem;
+    color: #475569;
+    padding: 6px 14px;
+    background: rgba(249, 115, 22, 0.04);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.07);
+}
+.tiptap-image-hint strong {
+    color: #f97316;
+    font-weight: 600;
+}
+
+/* ── Editor Area ────────────────────────────────── */
+.tiptap-editor-content {
+    min-height: 380px;
+    padding: 0;
+}
+.tiptap-editor-content > div {
+    min-height: 380px;
+    padding: 24px 28px;
+    outline: none;
+    background-color: #ffffff;
+    color: #000000;
+    font-size: 1rem;
+    line-height: 1.85;
+    font-family: 'Inter', sans-serif;
+    caret-color: #f97316;
+}
+
+/* ── ProseMirror placeholder ── */
+.tiptap-editor-content .ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    color: #334155;
+    pointer-events: none;
+    float: left;
+    height: 0;
+    font-style: italic;
+}
+
+/* ── Typography inside editor ── */
+.tiptap-editor-content h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: #000000;
+    margin: 1em 0 0.4em;
+    line-height: 1.2;
+}
+.tiptap-editor-content h2 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #000000;
+    margin: 0.9em 0 0.35em;
+    border-bottom: 1px solid rgba(249, 115, 22, 0.2);
+    padding-bottom: 0.2em;
+}
+.tiptap-editor-content h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #f97316;
+    margin: 0.8em 0 0.3em;
+}
+.tiptap-editor-content p {
+    margin: 0 0 0.9em;
+}
+.tiptap-editor-content strong {
+    color: #000000;
+    font-weight: 700;
+}
+.tiptap-editor-content em {
+    color: #000000;
+}
+.tiptap-editor-content u {
+    text-decoration-color: rgba(249, 115, 22, 0.6);
+}
+.tiptap-editor-content s {
+    text-decoration-color: #64748b;
+}
+.tiptap-editor-content code {
+    background: rgba(249, 115, 22, 0.12);
+    color: #fb923c;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 0.88em;
+    font-family: 'Roboto Mono', monospace;
+}
+.tiptap-editor-content pre {
+    background: rgba(2, 8, 23, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 1.2em 0;
+    overflow-x: auto;
+}
+.tiptap-editor-content pre code {
+    background: transparent;
+    color: #7dd3fc;
+    padding: 0;
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+.tiptap-editor-content blockquote {
+    border-left: 3px solid #f97316;
+    margin: 1.2em 0;
+    padding: 8px 0 8px 20px;
+    background: rgba(249, 115, 22, 0.05);
+    border-radius: 0 8px 8px 0;
+    color: #475569;
+    font-style: italic;
+}
+.tiptap-editor-content hr {
+    border: none;
+    border-top: 1px solid rgba(249, 115, 22, 0.25);
+    margin: 1.6em 0;
+}
+.tiptap-editor-content ul,
+.tiptap-editor-content ol {
+    padding-left: 1.6em;
+    margin: 0.5em 0 1em;
+}
+.tiptap-editor-content li {
+    margin-bottom: 0.3em;
+    color: #000000;
+}
+.tiptap-editor-content ul li::marker {
+    color: #f97316;
+}
+.tiptap-editor-content ol li::marker {
+    color: #f97316;
+    font-weight: 700;
+}
+
+/* ── Links ── */
+.tiptap-link {
+    color: #f97316;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(249, 115, 22, 0.4);
+    transition: text-decoration-color 0.15s;
+}
+.tiptap-link:hover {
+    text-decoration-color: #f97316;
+}
+
+/* ── Images in editor ── */
+.tiptap-image-wrapper {
+    margin: 1em 0;
+    max-width: 100%;
+}
+
+.tiptap-image-container {
+    transition: outline 0.15s;
+    border-radius: 10px;
+    overflow: visible;
+}
+
+/* When the NodeView is selected in ProseMirror */
+.tiptap-image-wrapper.ProseMirror-selectednode .tiptap-image-container {
+    outline: 2px solid #f97316;
+    outline-offset: 4px;
+}
+
+.tiptap-image {
+    max-width: 100%;
+    border-radius: 10px;
+    display: block;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    transition: box-shadow 0.2s;
+    cursor: pointer;
+}
+.tiptap-image:hover {
+    box-shadow: 0 8px 32px rgba(249, 115, 22, 0.2);
+}
+
+/* Resize Handles */
+.tiptap-resize-handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #f97316;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    z-index: 20;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.tiptap-resize-handle--tl {
+    top: -5px;
+    left: -5px;
+    cursor: nwse-resize;
+}
+
+.tiptap-resize-handle--tr {
+    top: -5px;
+    right: -5px;
+    cursor: nesw-resize;
+}
+
+.tiptap-resize-handle--bl {
+    bottom: -5px;
+    left: -5px;
+    cursor: nesw-resize;
+}
+
+.tiptap-resize-handle--br {
+    bottom: -5px;
+    right: -5px;
+    cursor: nwse-resize;
+}
+
+/* ── Scrollbar ── */
+.tiptap-editor-content > div::-webkit-scrollbar { width: 6px; }
+.tiptap-editor-content > div::-webkit-scrollbar-track { background: transparent; }
+.tiptap-editor-content > div::-webkit-scrollbar-thumb { background: rgba(249, 115, 22, 0.3); border-radius: 3px; }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+    .write-blog-container { padding: 24px 16px 60px; }
+    .write-blog-title { font-size: 1.8rem; }
+    .tiptap-toolbar { gap: 1px; padding: 6px 6px; }
+    .tiptap-select { max-width: 110px; }
+    .tiptap-editor-content > div { padding: 16px; }
+}

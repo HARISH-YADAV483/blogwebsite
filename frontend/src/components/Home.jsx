@@ -8,9 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 function Home() {
     const [blogs, setBlogs] = useState([]);
     const [hasMore, setHasMore] = useState(true);
-    const [image, setimage] = useState(null);
     const [message, setmessage] = useState(null);
-    const [write, setwrite] = useState(false);
     const navigate = useNavigate();
     const [chatters , setchatters] = useState([]);
       const [selectedBlogId, setSelectedBlogId] = useState(null);
@@ -25,65 +23,7 @@ function Home() {
         }
     }, [token, navigate]);
 
-    const handlChange = (e) => {
-        const { name, value } = e.target;
-        setblogdata(prev => ({ ...prev, [name]: value }));
-    }
 
-    const [loading, setLoading] = useState(false);
-    const uploadImage = async () => {
-        const data = new FormData();
-        data.append("file", image);
-        data.append("upload_preset", import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
-        data.append("cloud_name", import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
-
-        try {
-            setLoading(true);
-            const res = await axios.post(
-                `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
-                data
-            );
-            setLoading(false);
-            return res.data.secure_url;
-        } catch (error) {
-            setLoading(false);
-            console.log(error);
-        }
-    };
-
-    const [blogdata, setblogdata] = useState({
-        title: '',
-        subtitle: '',
-        content: '',
-        author: JSON.parse(localStorage.getItem("user") || "{}").name,
-        authorId: JSON.parse(localStorage.getItem("user") || "{}").userId,
-        image: '',
-    });
-
-    const handleright = () => {
-        setwrite(true);
-    }
-
-    const handlewriteb = async (e) => {
-        e.preventDefault();
-        let imageUrl = "";
-        if (image) {
-            imageUrl = await uploadImage();
-        }
-        const updatedBlogData = {
-            ...blogdata,
-            image: imageUrl
-        };
-        setwrite(false);
-        axios.post(`${API_URL}/blog`, updatedBlogData)
-            .then(res => {
-                setmessage(res.data.message);
-            })
-            .catch(err => {
-                console.error(err);
-                setmessage("blog sumbit failsss");
-            })
-    }
 
     const getpendingblogs = async (isLoadMore = false) => {
         const skip = isLoadMore ? blogs.length : 0;
@@ -170,21 +110,7 @@ function Home() {
                 <p>Welcome! You are logged in.</p>
 
                 <div className="blogs">
-                    {!write ? (<button onClick={handleright} >writeblog</button>) : (<div>
-                        <form onSubmit={handlewriteb} method="post">
-                            <input type="text" name="title" value={blogdata.title} onChange={handlChange} />
-                            <input type="text" name="subtitle" value={blogdata.subtitle} onChange={handlChange} />
-                            <input type="text" name="content" value={blogdata.content} onChange={handlChange} />
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => setimage(e.target.files[0])}
-                            />
-                            <button type="submit">
-                                {loading ? "Uploading..." : "Create Blog"}
-                            </button>
-                        </form>
-                    </div>)}
+                    <Link to="/write"><button>writeblog</button></Link>
                 </div>
                 {blogs.map((blog) => (
                     <div key={blog._id} className="blog-card">
@@ -192,12 +118,15 @@ function Home() {
                             <img src={blog.image} alt="" style={{ width: "300px", height: "auto" }} />
                         )}
 
-                        {blog.title}
-                        <br />
-                        {blog.subtitle}
-                        <br />
-                        {blog.content}
-                        <br />
+                        {blog.category && (
+                            <div style={{ backgroundColor: "#333", color: "white", padding: "4px 8px", borderRadius: "4px", display: "inline-block", marginBottom: "8px", fontSize: "12px" }}>
+                                {blog.category}
+                            </div>
+                        )}
+                        <h2>{blog.title}</h2>
+                        <h4 style={{ color: "#aaa", margin: "4px 0" }}>{blog.subtitle}</h4>
+                        <p style={{ fontSize: "14px", color: "#888", marginBottom: "12px" }}>By {blog.author}</p>
+                        
                         {blog.likes}
 
                         <div className="heart-container" title="Like" onClick={() => like(blog._id)}>

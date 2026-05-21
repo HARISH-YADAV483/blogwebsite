@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Navbar from "./Navbar";
+import "./writeblog.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -87,11 +88,18 @@ function Admin({ unreadCount, setUnreadCount }) {
    {blog.image && (
   <img src={blog.image} alt="" style={{width:"300px" , height:"auto"}} />
 )}
-                    {blog.title}
-                    <br />
-                    {blog.subtitle}
-                    <br />
-                    {blog.content}
+                    {blog.category && (
+                        <div style={{ backgroundColor: "#333", color: "white", padding: "4px 8px", borderRadius: "4px", display: "inline-block", marginBottom: "8px", fontSize: "12px" }}>
+                            {blog.category}
+                        </div>
+                    )}
+                    <h2>{blog.title}</h2>
+                    <h4 style={{ color: "#aaa", margin: "4px 0" }}>{blog.subtitle}</h4>
+                    <div 
+                        className="blog-content tiptap-editor-content" 
+                        dangerouslySetInnerHTML={{ __html: blog.content }}
+                        style={{ border: "1px solid #ddd", padding: "10px", margin: "10px 0", borderRadius: "8px" }}
+                    ></div>
                     <button onClick={() => reject(blog._id)}>
                         reject ❌
                     </button>

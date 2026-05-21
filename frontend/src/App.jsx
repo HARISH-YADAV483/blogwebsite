@@ -16,6 +16,7 @@ import Register from "./components/Register";
 import Communitydetail from "./components/Communitydetail";
 import Login from "./components/Login";
 import Forget from "./components/Forgetpassword";
+import Writeblog from "./components/Writeblog";
 function ProtectedAdminRoute({ children }) {
   const userData = JSON.parse(localStorage.getItem("user") || "{}");
   const role = userData.role || null;
@@ -50,6 +51,7 @@ function App() {
           }
         />
         <Route path="/" element={<Home />} />
+        <Route path="/write" element={<Writeblog />} />
         <Route path="/communities" element={<Communities />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
