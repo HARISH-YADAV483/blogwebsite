@@ -43,7 +43,8 @@ const UserSchema = new mongoose.Schema({
     savedblogs: Array,
     bio: String,
     dob: String,
-    name:String
+    name:String,
+    bc: Number
 });
 const User = mongoose.model("User", UserSchema);
 
@@ -59,9 +60,18 @@ const BlogSchema = new mongoose.Schema({
     views: Number,
     image: String,
     category: String,
-    contentImages: [String]
+    contentImages: [String],
+    commentors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    sharers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 });
 const Blog = mongoose.model("Blog", BlogSchema);
+
+const BlogViewSchema = new mongoose.Schema({
+    blogId: mongoose.Schema.Types.ObjectId,
+    userId: mongoose.Schema.Types.ObjectId,
+    count: { type: Number, default: 0 }
+});
+const BlogView = mongoose.model("BlogView", BlogViewSchema);
 
 const NotificationSchema = new mongoose.Schema({
     receiverId: mongoose.Schema.Types.ObjectId,
@@ -103,6 +113,7 @@ const CommunitySchema = new mongoose.Schema({
     members: Array,
     requests: Array,
     desc:String,
+    image: String,
     createdAt: { type: Date, default: Date.now }
 });
 const Community = mongoose.model("Community", CommunitySchema);
@@ -546,6 +557,8 @@ app.post("/like", async (req, res) => {
         const { id, userId } = req.body;
 
         const blog = await Blog.findById(id);
+        const authorid = blog.authorId ;
+        const writer = await User.findById(authorid);
         if (!blog) {
             return res.status(404).json({
                 message: "Blog not found"
@@ -566,9 +579,12 @@ app.post("/like", async (req, res) => {
             );
 
             blog.likes = Math.max((blog.likes || 0) - 1, 0);
+            writer.bc = Math.max((writer.bc || 0) - 0.5, 0);
+            
 
             await user.save();
             await blog.save();
+            await writer.save();
 
             return res.json({
                 message: "Unliked successfully",
@@ -579,9 +595,11 @@ app.post("/like", async (req, res) => {
         // If not liked → like
         user.blogliked.push(id);
         blog.likes = (blog.likes || 0) + 1;
+        writer.bc = (writer.bc || 0) + 0.5;
 
         await user.save();
         await blog.save();
+        await writer.save();
 
         // Notification Logic
         const authorId = blog.authorId;
@@ -672,12 +690,23 @@ app.post("/comments", async (req, res) => {
     try {
         const { comment, id, userId } = req.body;
         const blog = await Blog.findById(id);
-        const user = await User.findById(userId)
+        const user = await User.findById(userId);
+        const writerid = blog.authorId;
+        const writer = await User.findById(writerid);
+
         if (!blog) {
             return res.status(404).json({ message: "Blog not found" });
         }
         blog.comments.push(comment);
         user.blogcommented.push(id);
+
+        // Push userId to commentors if not already present
+        if (!blog.commentors.some(cId => cId.toString() === userId.toString())) {
+            blog.commentors.push(userId);
+            writer.bc = writer.bc + 1 ;
+
+        }
+await writer.save();
         await user.save();
         await blog.save();
 
@@ -714,14 +743,46 @@ app.post("/comments", async (req, res) => {
     }
 })
 
+//share blog - track sharer
+app.post("/shareblog", async (req, res) => {
+    try {
+        const { blogId, userId } = req.body;
+        const blog = await Blog.findById(blogId);
+        const writerid =  blog.authorId;
+        const writer  = await User.findById(writerid);
+
+        if (!blog) {
+            return res.status(404).json({ message: "Blog not found" });
+        }
+
+        // Push userId to sharers if not already present
+        if (!blog.sharers.some(sId => sId.toString() === userId.toString())) {
+            blog.sharers.push(userId);
+            writer.bc = writer.bc +1 ;
+            await writer.save();
+            await blog.save();
+            
+        }
+
+        res.json({ message: "Sharer tracked successfully" });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Unable to track sharer" });
+    }
+})
+
 
 
 //getfull blog
 app.get("/blogs/:id", async (req, res) => {
     try {
         const { id } = req.params;
+        const { userId } = req.query;
 
         const blog = await Blog.findById(id);
+        const writerid = blog.authorId;
+        const writer = await User.findById(writerid);
+
 
         if (!blog) {
             return res.status(404).json({
@@ -729,8 +790,31 @@ app.get("/blogs/:id", async (req, res) => {
                 message: "Blog not found"
             });
         }
-        blog.views = (blog.views || 0) + 1;
-        blog.save();
+
+        if (userId) {
+            let blogView = await BlogView.findOne({ blogId: id, userId });
+            if (!blogView) {
+                blogView = new BlogView({ blogId: id, userId, count: 1 });
+                await blogView.save();
+                blog.views = (blog.views || 0) + 1;
+                writer.bc = writer.bc + 0.1 ;
+                await writer.save();
+
+                await blog.save();
+            } else if (blogView.count < 10) {
+                blogView.count += 1;
+                await blogView.save();
+                blog.views = (blog.views || 0) + 1;
+                writer.bc = writer.bc + 0.1 ;
+                await writer.save();
+                await blog.save();
+            }
+        } else {
+            // For anonymous/guest users, we can just increment the views
+
+            await blog.save();
+        }
+
         res.status(200).json(blog);
 
     } catch (error) {
@@ -758,6 +842,7 @@ app.post("/getprofile", async (req, res) => {
 
         const userName = user.name;
         const blogs = await Blog.find({ author: userName });
+        const bc = user.bc;
 
         const veriblogs = blogs.filter(blog => blog.status === "verified");
         const vericount = veriblogs.length;
@@ -794,7 +879,8 @@ app.post("/getprofile", async (req, res) => {
             saved,
             bio: user.bio || "",
             dob: user.dob || "",
-            email: user.email || ""
+            email: user.email || "",
+            bc
         });
 
     } catch (error) {
@@ -1417,13 +1503,15 @@ app.post("/clearunread", async (req, res) => {
 // --- COMMUNITIES API ---
 app.post("/community/create", async (req, res) => {
     try {
-        const { name, type, creatorId, members } = req.body;
+        const { name, type, creatorId, members, desc, image } = req.body;
         const newCommunity = new Community({
             name,
             type,
             creatorId,
             members: [creatorId, ...(members || [])],
-            requests: []
+            requests: [],
+            desc,
+            image
         });
         await newCommunity.save();
         

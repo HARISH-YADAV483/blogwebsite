@@ -15,9 +15,12 @@ function Communities() {
 
     // Create Community State
     const [name, setName] = useState("");
+    const [desc, setDesc] = useState("");
+    const [image, setImage] = useState(null);
     const [type, setType] = useState("public");
     const [availableChatters, setAvailableChatters] = useState([]);
     const [selectedChatters, setSelectedChatters] = useState([]);
+    const [creating, setCreating] = useState(false);
 
     useEffect(() => {
         if (userId) {
@@ -85,18 +88,38 @@ function Communities() {
 
     const handleCreate = async (e) => {
         e.preventDefault();
+        setCreating(true);
         try {
+            let imageUrl = "";
+            if (image) {
+                const data = new FormData();
+                data.append("file", image);
+                data.append("upload_preset", import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+                data.append("cloud_name", import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
+                const res = await axios.post(
+                    `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
+                    data
+                );
+                imageUrl = res.data.secure_url;
+            }
+
             await axios.post(`${API_URL}/community/create`, {
                 name,
                 type,
                 creatorId: userId,
-                members: selectedChatters
+                members: selectedChatters,
+                desc,
+                image: imageUrl
             });
             setName("");
+            setDesc("");
+            setImage(null);
             setSelectedChatters([]);
             fetchJoined();
         } catch (err) {
             console.error(err);
+        } finally {
+            setCreating(false);
         }
     };
 
@@ -235,6 +258,27 @@ function Communities() {
                 <h2>Create Community</h2>
                 <form onSubmit={handleCreate}>
                     <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Community Name" required />
+                    
+                    <div style={{ margin: '10px 0' }}>
+                        <textarea 
+                            value={desc} 
+                            onChange={(e) => setDesc(e.target.value)} 
+                            placeholder="Community Description" 
+                            required 
+                            rows="3"
+                            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+                        />
+                    </div>
+                    
+                    <div style={{ margin: '10px 0' }}>
+                        <label style={{ display: 'block', marginBottom: '5px' }}>Profile Image:</label>
+                        <input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={(e) => setImage(e.target.files[0])} 
+                        />
+                    </div>
+
                     <select value={type} onChange={(e) => setType(e.target.value)}>
                         <option value="public">Public</option>
                         <option value="private">Private</option>
@@ -255,7 +299,9 @@ function Communities() {
                             </div>
                         ))}
                     </div>
-                    <button type="submit">Create</button>
+                    <button type="submit" disabled={creating}>
+                        {creating ? "Creating..." : "Create"}
+                    </button>
                 </form>
             </div>
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Admin from "./components/Admin";
 import Home from "./components/Home";
 import Profile from "./components/Profile";
@@ -24,6 +24,9 @@ function ProtectedAdminRoute({ children }) {
 }
 
 function App() {
+  const location = useLocation();
+  const hideNavbar = location.pathname === "/login" || location.pathname === "/register";
+  
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMsgCount, setUnreadMsgCount] = useState(0);
   const [unreadPerChatter, setUnreadPerChatter] = useState({});
@@ -31,16 +34,18 @@ function App() {
 
   return (
     <>
-      <Navbar
-        unreadCount={unreadCount}
-        setUnreadCount={setUnreadCount}
-        unreadMsgCount={unreadMsgCount}
-        setUnreadMsgCount={setUnreadMsgCount}
-        unreadPerChatter={unreadPerChatter}
-        setUnreadPerChatter={setUnreadPerChatter}
-        unreadChatters={unreadChatters}
-        setUnreadChatters={setUnreadChatters}
-      />
+      {!hideNavbar && (
+        <Navbar
+          unreadCount={unreadCount}
+          setUnreadCount={setUnreadCount}
+          unreadMsgCount={unreadMsgCount}
+          setUnreadMsgCount={setUnreadMsgCount}
+          unreadPerChatter={unreadPerChatter}
+          setUnreadPerChatter={setUnreadPerChatter}
+          unreadChatters={unreadChatters}
+          setUnreadChatters={setUnreadChatters}
+        />
+      )}
       <Routes>
         <Route
           path="/admin"

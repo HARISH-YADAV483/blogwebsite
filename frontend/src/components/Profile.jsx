@@ -27,6 +27,7 @@ function Profile() {
     const [selectedChatters, setSelectedChatters] = useState([]);
     const [saved, setSaved] = useState([]);
     const [dob, setdob] = useState("");
+    const [bc, setbc] = useState("");
     const [bio , setbio] = useState("");
     const [email , setemail] = useState("");
     const [username , setusername] = useState("");
@@ -58,6 +59,7 @@ function Profile() {
                 setfollowing(res.data.following || []);
                 setchatters(res.data.chatters || []);
                 setSaved(res.data.saved || []);
+                setbc(res.data.bc || "0");
                 setbio(res.data.bio || "blogCHIT user");
                 setdob(res.data.dob || "");
                 setemail(res.data.email || "");
@@ -184,20 +186,20 @@ function Profile() {
     );
 
 
-    const like = (id) => {
-        axios.post(`${API_URL}/like`, { id })
-            .then(res => {
-                // Update local state to show new like count immediately
-                setBlogs(prevBlogs => prevBlogs.map(blog =>
-                    blog._id === id ? { ...blog, likes: res.data.likes } : blog
-                ));
-            })
-            .catch(err => {
-                console.error(err);
-                console.log("unable to like ");
-            })
+    // const like = (id) => {
+    //     axios.post(`${API_URL}/like`, { id })
+    //         .then(res => {
+             
+    //             setBlogs(prevBlogs => prevBlogs.map(blog =>
+    //                 blog._id === id ? { ...blog, likes: res.data.likes } : blog
+    //             ));
+    //         })
+    //         .catch(err => {
+    //             console.error(err);
+    //             console.log("unable to like ");
+    //         })
 
-    }
+    // }
     const getnoti = async () => {
         await axios.get(`${API_URL}/notifications/${userId}`)
             .then(res => {
@@ -307,36 +309,24 @@ function Profile() {
             <h2>yours blog : </h2>
             {blogs.map((blog) => (
                 <div key={blog._id} className="blog-card">
-                    {blog.title}
-                    <br />
-                    {blog.subtitle}
-                    <br />
-                    {blog.content}
-                    <br />
-                    {blog.likes}
-                    <button onClick={() => like(blog._id)}>
-                        <div className="heart-container" title="Like">
-                            <input type="checkbox" className="checkbox" id={`like-${blog._id}`} readOnly />
-                            <div className="svg-container">
-                                <svg viewBox="0 0 24 24" className="svg-outline" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M17.5,1.917a6.4,6.4,0,0,0-5.5,3.3,6.4,6.4,0,0,0-5.5-3.3A6.8,6.8,0,0,0,0,8.967c0,4.547,4.786,9.513,8.8,12.88a4.974,4.974,0,0,0,6.4,0C19.214,18.48,24,13.514,24,8.967A6.8,6.8,0,0,0,17.5,1.917Zm-3.585,18.4a2.973,2.973,0,0,1-3.83,0C4.947,16.006,2,11.87,2,8.967a4.8,4.8,0,0,1,4.5-5.05A4.8,4.8,0,0,1,11,8.967a1,1,0,0,0,2,0,4.8,4.8,0,0,1,4.5-5.05A4.8,4.8,0,0,1,22,8.967C22,11.87,19.053,16.006,13.915,20.313Z">
-                                    </path>
-                                </svg>
-                                <svg viewBox="0 0 24 24" className="svg-filled" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M17.5,1.917a6.4,6.4,0,0,0-5.5,3.3,6.4,6.4,0,0,0-5.5-3.3A6.8,6.8,0,0,0,0,8.967c0,4.547,4.786,9.513,8.8,12.88a4.974,4.974,0,0,0,6.4,0C19.214,18.48,24,13.514,24,8.967A6.8,6.8,0,0,0,17.5,1.917Z">
-                                    </path>
-                                </svg>
-                                <svg className="svg-celebrate" width="100" height="100" xmlns="http://www.w3.org/2000/svg">
-                                    <polygon points="10,10 20,20"></polygon>
-                                    <polygon points="10,50 20,50"></polygon>
-                                    <polygon points="20,80 30,70"></polygon>
-                                    <polygon points="90,10 80,20"></polygon>
-                                    <polygon points="90,50 80,50"></polygon>
-                                    <polygon points="80,80 70,70"></polygon>
-                                </svg>
+                    {blog.image && (
+                            <img src={blog.image} alt="" style={{ width: "300px", height: "auto" }} />
+                        )}
+
+                        {blog.category && (
+                            <div style={{ backgroundColor: "#333", color: "white", padding: "4px 8px", borderRadius: "4px", display: "inline-block", marginBottom: "8px", fontSize: "12px" }}>
+                                {blog.category}
                             </div>
-                        </div>
-                    </button>
+                        )}
+                        <h2>{blog.title}</h2>
+                        <h4 style={{ color: "#aaa", margin: "4px 0" }}>{blog.subtitle}</h4>
+                        <p style={{ fontSize: "14px", color: "#888", marginBottom: "12px" }}>By {blog.author}</p>
+                        
+                      likes = {blog.likes}
+                     <br />
+
+                      views = {blog.views}
+                      <br />
 
                     <Link to={`/blog/${blog._id}`} >
                         Read Full blog
@@ -392,6 +382,9 @@ function Profile() {
         const messageContent = `Check out this blog: ${blogUrl}`;
         
         try {
+            // Track sharer in blog's sharers array
+            await axios.post(`${API_URL}/shareblog`, { blogId: selectedBlogId, userId });
+
             for (const chatterId of selectedChatters) {
                 const messageData = {
                     senderId: userId,
@@ -422,6 +415,8 @@ function Profile() {
             totallokes ; {totallikes}
             <hr />
             totalcommests : {totalcomments}
+            <hr />
+            bc : {bc}
 
             <hr />
             <button onClick={getnoti}>notification history</button>

@@ -17,7 +17,8 @@ function Fullblog() {
     const fetchBlog = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`${API_URL}/blogs/${id}`);
+            const url = userId ? `${API_URL}/blogs/${id}?userId=${userId}` : `${API_URL}/blogs/${id}`;
+            const res = await axios.get(url);
             setBlog(res.data);
             setcomments(res.data.comments || []);
         } catch (err) {

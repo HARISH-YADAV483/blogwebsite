@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import blogchit from '../assets/blogchit.png';
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios'
 import Navbar from "./Navbar";
@@ -108,6 +109,7 @@ function Home() {
         <>
             <div>
                 <p>Welcome! You are logged in.</p>
+                <img src={blogchit} style={{marginRight:"15vw" ,marginLeft:"15vw" , width:"70vw" , height:"auto" , marginTop:"23px"}} alt="" className="logo" />
 
                 <div className="blogs">
                     <Link to="/write"><button>writeblog</button></Link>
@@ -165,6 +167,7 @@ function Home() {
                                 </svg>
                             </div>
                         </div>
+                       views : "" {blog.views} ""
 
                         <Link to={`/blog/${blog._id}`} >
                             comment 📝
@@ -205,6 +208,9 @@ function Home() {
         const messageContent = `Check out this blog: ${blogUrl}`;
         
         try {
+            // Track sharer in blog's sharers array
+            await axios.post(`${API_URL}/shareblog`, { blogId: selectedBlogId, userId });
+
             for (const chatterId of selectedChatters) {
                 const messageData = {
                     senderId: userId,
