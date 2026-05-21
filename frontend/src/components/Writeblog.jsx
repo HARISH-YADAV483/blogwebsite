@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import './writeblog.css';
-import TiptapEditor from "./Tiptapeditor";
+import TiptapEditor from "./TiptapEditor";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
