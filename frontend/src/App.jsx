@@ -25,7 +25,7 @@ function ProtectedAdminRoute({ children }) {
 
 function App() {
   const location = useLocation();
-  const hideNavbar = location.pathname === "/login" || location.pathname === "/register";
+  const hideNavbar = location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/forgotpass";
   
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMsgCount, setUnreadMsgCount] = useState(0);

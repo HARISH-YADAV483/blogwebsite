@@ -44,6 +44,7 @@ const UserSchema = new mongoose.Schema({
     bio: String,
     dob: String,
     name:String,
+    phone: String,
     bc: Number
 });
 const User = mongoose.model("User", UserSchema);
@@ -864,6 +865,15 @@ app.post("/getprofile", async (req, res) => {
         const followerUsers = await User.find({ _id: { $in: followerIds } }, '_id name');
         const followingUsers = await User.find({ _id: { $in: followingIds } }, '_id name');
 
+        let profileBc = 0;
+        if (user.image && user.image.trim() !== "") profileBc += 2;
+        if (user.bio && user.bio.trim() !== "") profileBc += 2;
+        if (user.dob && user.dob.trim() !== "") profileBc += 2;
+        if (user.phone && user.phone.trim() !== "") profileBc += 2;
+        if (user.name && user.name.trim() !== "") profileBc += 1;
+        if (user.email && user.email.trim() !== "") profileBc += 1;
+        const computedBc = (bc || 0) + profileBc;
+
         res.status(200).json({
             blogcount,
             vericount,
@@ -880,7 +890,8 @@ app.post("/getprofile", async (req, res) => {
             bio: user.bio || "",
             dob: user.dob || "",
             email: user.email || "",
-            bc
+            phone: user.phone || "",
+            bc: computedBc
         });
 
     } catch (error) {
@@ -892,7 +903,7 @@ app.post("/getprofile", async (req, res) => {
 
 app.post("/changedetails", async (req, res) => {
     try {
-        const { userId, name, dob, bio } = req.body;
+        const { userId, name, dob, bio, phone } = req.body;
         if (!userId) {
             return res.status(400).json({ success: false, message: "User ID is required" });
         }
@@ -917,6 +928,7 @@ app.post("/changedetails", async (req, res) => {
 
         if (dob !== undefined) user.dob = dob;
         if (bio !== undefined) user.bio = bio;
+        if (phone !== undefined) user.phone = phone;
 
         await user.save();
 

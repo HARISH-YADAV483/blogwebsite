@@ -30,6 +30,7 @@ function Profile() {
     const [bc, setbc] = useState("");
     const [bio , setbio] = useState("");
     const [email , setemail] = useState("");
+    const [phone , setphone] = useState("");
     const [username , setusername] = useState("");
     const [showpersonal , setshowpersonal] = useState(false);
     const [showpass, setshowpass] = useState(false);
@@ -43,7 +44,8 @@ function Profile() {
         name: "",
         dob: "",
         bio: "",
-        email: ""
+        email: "",
+        phone: ""
     });
 
     const getprofile = async () => {
@@ -63,12 +65,14 @@ function Profile() {
                 setbio(res.data.bio || "blogCHIT user");
                 setdob(res.data.dob || "");
                 setemail(res.data.email || "");
+                setphone(res.data.phone || "");
                 setusername(res.data.username || "");
                 setFormData({
                     name: res.data.username || "",
                     dob: res.data.dob || "777",
                     bio: res.data.bio || "blogCHIT user",
-                    email: res.data.email || "fghj"
+                    email: res.data.email || "fghj",
+                    phone: res.data.phone || ""
                 });
             })
             .catch(err => {
@@ -91,7 +95,8 @@ function Profile() {
                 userId,
                 name: formData.name,
                 dob: formData.dob,
-                bio: formData.bio
+                bio: formData.bio,
+                phone: formData.phone
             });
 
             if (res.data.success) {
@@ -99,6 +104,7 @@ function Profile() {
                 setusername(formData.name);
                 setdob(formData.dob);
                 setbio(formData.bio);
+                setphone(formData.phone);
 
                 // Update localStorage so the new name is used across the app
                 const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
@@ -459,7 +465,14 @@ function Profile() {
         name="bio"
         value={formData.bio}
         onChange={handleChange}
-        placeholder={formData.bio}
+        placeholder={formData.bio || "bio"}
+      />
+      <input
+        type="text"
+        name="phone"
+        value={formData.phone}
+        onChange={handleChange}
+        placeholder={formData.phone || "phone"}
       />
    
 
