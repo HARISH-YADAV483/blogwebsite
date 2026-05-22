@@ -257,13 +257,13 @@ function Register() {
                                 <input type="text" placeholder="Email" value={email} onChange={(e) => {
                                     setemail(e.target.value);
                                 }} />
-                                <button type="button" onClick={sendotp}>Send OTP</button>
+                                <button type="button" className="otp-btn" onClick={sendotp}>Send OTP</button>
                                 
                                 <label style={{marginTop: "20px"}}>Enter OTP</label>
                                 <input type="text" placeholder="Enter OTP" value={otp} onChange={(e) => {
                                     setotp(e.target.value);
                                 }} />
-                                <button type="button" onClick={verifyotp}>Verify OTP</button>
+                                <button type="button" className="otp-btn" onClick={verifyotp}>Verify OTP</button>
 
                                 <p style={{textAlign: "center", margin: "15px 0", color: "#666"}}>or verify with Google</p>
                                 

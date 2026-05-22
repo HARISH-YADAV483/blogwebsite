@@ -97,6 +97,7 @@ function Forget() {
                             />
                             <button
                                 type="button"
+                                className="otp-btn"
                                 onClick={handleSendOtp}
                                 disabled={loadingOtp}
                             >
