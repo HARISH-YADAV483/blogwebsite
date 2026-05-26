@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { io } from 'socket.io-client';
 
@@ -8,7 +8,8 @@ const API_URL = import.meta.env.VITE_API_URL;
 const socket = io(import.meta.env.VITE_SOCKET_URL);
 
 function Profile() {
-    const name = JSON.parse(localStorage.getItem("user") || "{}").name;
+    const navigate = useNavigate();
+    const currentUsername = JSON.parse(localStorage.getItem("user") || "{}").username;
     const userId = JSON.parse(localStorage.getItem("user") || "{}").userId;
 
     const [blogcount, setblogcunt] = useState("");
@@ -41,7 +42,7 @@ function Profile() {
     const [loadingOtp, setLoadingOtp] = useState(false);
     const [loadingSave, setLoadingSave] = useState(false);
     const [formData, setFormData] = useState({
-        name: "",
+        username: "",
         dob: "",
         bio: "",
         email: "",
@@ -49,7 +50,7 @@ function Profile() {
     });
 
     const getprofile = async () => {
-        await axios.post(`${API_URL}/getprofile`, { name })
+        await axios.post(`${API_URL}/getprofile`, { username: currentUsername })
             .then(res => {
                 setblogcunt(res.data.blogcount);
                 setvericunt(res.data.vericount);
@@ -68,7 +69,7 @@ function Profile() {
                 setphone(res.data.phone || "");
                 setusername(res.data.username || "");
                 setFormData({
-                    name: res.data.username || "",
+                    username: res.data.username || "",
                     dob: res.data.dob || "777",
                     bio: res.data.bio || "blogCHIT user",
                     email: res.data.email || "fghj",
@@ -93,7 +94,7 @@ function Profile() {
         try {
             const res = await axios.post(`${API_URL}/changedetails`, {
                 userId,
-                name: formData.name,
+                username: formData.username,
                 dob: formData.dob,
                 bio: formData.bio,
                 phone: formData.phone
@@ -101,14 +102,14 @@ function Profile() {
 
             if (res.data.success) {
                 // Update local states
-                setusername(formData.name);
+                setusername(formData.username);
                 setdob(formData.dob);
                 setbio(formData.bio);
                 setphone(formData.phone);
 
-                // Update localStorage so the new name is used across the app
+                // Update localStorage so the new username is used across the app
                 const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-                storedUser.name = formData.name;
+                storedUser.username = formData.username;
                 localStorage.setItem("user", JSON.stringify(storedUser));
 
                 alert(res.data.message || "Profile updated successfully!");
@@ -220,10 +221,8 @@ function Profile() {
     useEffect(() => {
         getprofile();
 
-        if (name) {
-            socket.emit("setup_user", name);
-
-
+        if (currentUsername) {
+            socket.emit("setup_user", currentUsername);
         }
 
         const handleNewNotification = (newNotif) => {
@@ -237,7 +236,7 @@ function Profile() {
             socket.off("receive_notification", handleNewNotification);
         };
 
-    }, [name]);
+    }, [currentUsername]);
     useEffect(() => {
         getprofile();
 
@@ -445,10 +444,10 @@ function Profile() {
     <form onSubmit={changedetails}>
       <input
         type="text"
-        name="name"
-        value={formData.name}
+        name="username"
+        value={formData.username}
         onChange={handleChange}
-        placeholder={formData.name}
+        placeholder={formData.username}
       />
 
       <br /><br />
@@ -550,6 +549,23 @@ function Profile() {
     </div>
   </div>
 )}
+       <button
+         className="profile-logout-btn"
+         onClick={() => {
+           axios.post(`${API_URL}/logout`)
+             .then(res => {
+               localStorage.removeItem('user');
+               navigate("/");
+               window.location.reload();
+             })
+             .catch(err => {
+               console.error(err);
+               alert("Logout failed");
+             });
+         }}
+       >
+         Logout
+       </button>
     </>
     )
 }

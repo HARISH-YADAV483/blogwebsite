@@ -12,7 +12,7 @@ function Home() {
     const [message, setmessage] = useState(null);
     const navigate = useNavigate();
     const [chatters , setchatters] = useState([]);
-      const [selectedBlogId, setSelectedBlogId] = useState(null);
+    const [selectedBlogId, setSelectedBlogId] = useState(null);
     const [selectedChatters, setSelectedChatters] = useState([]);
     const userId = JSON.parse(localStorage.getItem("user") || "{}").userId
     const [role, setrole] = useState(JSON.parse(localStorage.getItem("user") || "{}").role || "");
@@ -102,13 +102,13 @@ function Home() {
     }, [token]);
 
     if (!token) {
-        return null; // Or a loading spinner while redirecting
+        return null; 
     }
 
     return (
         <>
             <div>
-                <p>Welcome! You are logged in.</p>
+         
                 <img src={blogchit} style={{marginRight:"15vw" ,marginLeft:"15vw" , width:"70vw" , height:"auto" , marginTop:"23px"}} alt="" className="logo" />
 
                 <div className="blogs">

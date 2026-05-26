@@ -1,0 +1,112 @@
+.messaging-layout-container {
+    display: flex;
+    height: calc(100vh - 65px);
+    width: 100%;
+    background: #fdfdfd;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Glassmorphism */
+.messaging-sidebar, .messaging-main {
+    position: relative;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.messaging-sidebar {
+    width: 350px;
+    border-right: 1px solid rgba(223, 134, 10, 0.2);
+    overflow-y: auto;
+    height: 100%;
+    flex-shrink: 0;
+}
+
+.messaging-main {
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+}
+
+.empty-chat-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #df860a;
+    font-size: 18px;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Orbs from register.css */
+.styleo-bg-pattern {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 40px,
+        rgba(219, 100, 2, 0.06) 40px,
+        rgba(219, 100, 2, 0.06) 41px
+    );
+    z-index: 0;
+}
+
+.styleo-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.5;
+    z-index: 0;
+    animation: orbFloat 8s ease-in-out infinite;
+}
+.styleo-orb-1 {
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, #df860a 0%, transparent 70%);
+    top: -60px; right: -40px;
+    animation-duration: 7s;
+}
+.styleo-orb-2 {
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, #FBBF6A 0%, transparent 70%);
+    bottom: 10%; left: 5%;
+    animation-duration: 9s;
+    animation-delay: -3s;
+}
+.styleo-orb-3 {
+    width: 150px; height: 150px;
+    background: radial-gradient(circle, #F9D49A 0%, transparent 70%);
+    top: 40%; right: 15%;
+    animation-duration: 11s;
+    animation-delay: -6s;
+}
+@keyframes orbFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-20px) scale(1.05); }
+}
+
+@media (min-width: 1024px) {
+    .hide-on-desktop {
+        display: none !important;
+    }
+}
+
+@media (max-width: 1023px) {
+    .messaging-layout-container {
+        /* Full viewport height accounting for mobile navbars */
+        height: calc(100vh - 128px);
+    }
+    .messaging-sidebar {
+        width: 100%;
+        border-right: none;
+    }
+    .messaging-main {
+        width: 100%;
+    }
+    .hide-on-mobile {
+        display: none !important;
+    }
+}

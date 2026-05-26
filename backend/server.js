@@ -406,7 +406,7 @@ app.post("/regi", async (req, res) => {
         res.json({
             message: "registration successful....",
             userId: newUser._id,
-            name: newUser.name
+            username: newUser.username
         });
     }
 })
@@ -427,10 +427,10 @@ app.post("/logi", async (req, res) => {
 
         if (passw == pass) {
 
-            const token = jwt.sign({ userId: exist._id, name: exist.name }, JWT_SECRET, { expiresIn: '1h' });
+            const token = jwt.sign({ userId: exist._id, username: exist.username }, JWT_SECRET, { expiresIn: '1h' });
 
             const role = exist.role;
-            res.json({ message: "user login done !!!   ", token, role, name: exist.name, userId: exist._id })
+            res.json({ message: "user login done !!!   ", token, role, username: exist.username, userId: exist._id })
 
         }
         else {
@@ -704,7 +704,7 @@ app.post("/comments", async (req, res) => {
         // Push userId to commentors if not already present
         if (!blog.commentors.some(cId => cId.toString() === userId.toString())) {
             blog.commentors.push(userId);
-            writer.bc = writer.bc + 1 ;
+            writer.bc = (writer.bc || 0) + 1 ;
 
         }
 await writer.save();
@@ -759,7 +759,7 @@ app.post("/shareblog", async (req, res) => {
         // Push userId to sharers if not already present
         if (!blog.sharers.some(sId => sId.toString() === userId.toString())) {
             blog.sharers.push(userId);
-            writer.bc = writer.bc +1 ;
+            writer.bc = (writer.bc || 0) + 1 ;
             await writer.save();
             await blog.save();
             
@@ -798,7 +798,7 @@ app.get("/blogs/:id", async (req, res) => {
                 blogView = new BlogView({ blogId: id, userId, count: 1 });
                 await blogView.save();
                 blog.views = (blog.views || 0) + 1;
-                writer.bc = writer.bc + 0.1 ;
+                writer.bc = (writer.bc || 0) + 0.1 ;
                 await writer.save();
 
                 await blog.save();
@@ -806,7 +806,7 @@ app.get("/blogs/:id", async (req, res) => {
                 blogView.count += 1;
                 await blogView.save();
                 blog.views = (blog.views || 0) + 1;
-                writer.bc = writer.bc + 0.1 ;
+                writer.bc = (writer.bc || 0) + 0.1 ;
                 await writer.save();
                 await blog.save();
             }
@@ -829,19 +829,19 @@ app.get("/blogs/:id", async (req, res) => {
 /// getting profile details 
 app.post("/getprofile", async (req, res) => {
     try {
-        const { userId, name } = req.body;
+        const { userId, username } = req.body;
         let user;
         if (userId) {
             user = await User.findById(userId);
-        } else if (name) {
-            user = await User.findOne({ name });
+        } else if (username) {
+            user = await User.findOne({ username });
         }
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        const userName = user.name;
+        const userName = user.username;
         const blogs = await Blog.find({ author: userName });
         const bc = user.bc;
 
@@ -903,7 +903,7 @@ app.post("/getprofile", async (req, res) => {
 
 app.post("/changedetails", async (req, res) => {
     try {
-        const { userId, name, dob, bio, phone } = req.body;
+        const { userId, username, dob, bio, phone } = req.body;
         if (!userId) {
             return res.status(400).json({ success: false, message: "User ID is required" });
         }
@@ -913,17 +913,17 @@ app.post("/changedetails", async (req, res) => {
             return res.status(404).json({ success: false, message: "User not found" });
         }
 
-        // If the name is being changed, check if it's already taken
-        if (name && name !== user.name) {
-            const existingUser = await User.findOne({ name });
+        // If the username is being changed, check if it's already taken
+        if (username && username !== user.username) {
+            const existingUser = await User.findOne({ username });
             if (existingUser) {
                 return res.status(400).json({ success: false, message: "Username is already taken" });
             }
 
             // Also update the author field in the User's blogs!
-            await Blog.updateMany({ authorId: userId }, { author: name });
+            await Blog.updateMany({ authorId: userId }, { author: username });
 
-            user.name = name;
+            user.username = username;
         }
 
         if (dob !== undefined) user.dob = dob;
@@ -1116,7 +1116,7 @@ app.post("/changepassword", async (req, res) => {
 
 app.post("/searchprofile", async (req, res) => {
     try {
-        const { id, name: currentUserName } = req.body;
+        const { id, username: currentUserName } = req.body;
         let user;
         if (id) {
             user = await User.findById(id);
@@ -1126,33 +1126,39 @@ app.post("/searchprofile", async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        const profileName = user.name;
+        const profileName = user.username;
         const blogs = await Blog.find({ author: profileName });
         const veriblogs = blogs.filter(blog => blog.status === "verified");
         const image = user.image || "";
+        const bc  = user.bc || "0";
+        const bio = user.bio || "blogCHIT user";
+        const name = user.name ;
 
         // Check if current user is following this profile
         let isfollowing = false;
         if (currentUserName) {
-            const currentUser = await User.findOne({ name: currentUserName });
+            const currentUser = await User.findOne({ username: currentUserName });
             if (currentUser && currentUser.following.includes(id)) {
                 isfollowing = true;
             }
         }
 
-        // Resolve follower/following IDs to {_id, name} objects
+        // Resolve follower/following IDs to {_id, username} objects
         const followerIds = user.follower || [];
         const followingIds = user.following || [];
-        const followerUsers = await User.find({ _id: { $in: followerIds } }, '_id name');
-        const followingUsers = await User.find({ _id: { $in: followingIds } }, '_id name');
+        const followerUsers = await User.find({ _id: { $in: followerIds } }, '_id username');
+        const followingUsers = await User.find({ _id: { $in: followingIds } }, '_id username');
 
         res.status(200).json({
             veriblogs,
             image,
-            name: profileName,
+            username: profileName,
             isfollowing,
             followers: followerUsers,
-            following: followingUsers
+            following: followingUsers,
+            bc,
+            bio, 
+            name
         });
 
     } catch (error) {
@@ -1194,8 +1200,8 @@ app.post("/follow", async (req, res) => {
         const notification = new Notification({
             receiverId: targetId,
             senderId: userId,
-            senderName: currentUser.name,
-            message: `${currentUser.name} started following you`
+            senderName: currentUser.username,
+            message: `${currentUser.username} started following you`
         });
         await notification.save();
         io.to(targetId.toString()).emit('receive_notification', {
@@ -1330,7 +1336,25 @@ app.get("/chatters/:userId", async (req, res) => {
         const chatterIds = user.chatters || [];
         const chatters = await User.find({ _id: { $in: chatterIds } }, '_id name image');
         
-        res.json(chatters);
+        // Find latest message for each chatter
+        const chattersWithLatest = await Promise.all(chatters.map(async (chatter) => {
+            const latestMsg = await Message.findOne({
+                $or: [
+                    { senderId: userId, receiverId: chatter._id },
+                    { senderId: chatter._id, receiverId: userId }
+                ],
+                deletedBy: { $ne: new mongoose.Types.ObjectId(userId) }
+            }).sort({ time: -1 });
+            
+            return {
+                ...chatter.toObject(),
+                latestMessageTime: latestMsg ? latestMsg.time : new Date(0)
+            };
+        }));
+        
+        chattersWithLatest.sort((a, b) => new Date(b.latestMessageTime) - new Date(a.latestMessageTime));
+        
+        res.json(chattersWithLatest);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Unable to fetch chatters" });
@@ -1364,7 +1388,7 @@ app.post("/search", async (req, res) => {
     }
 
     const userlist = await User.find({
-     name: {
+     username: {
         $regex: search,
         $options: "i" // case-insensitive
       }

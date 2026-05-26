@@ -170,6 +170,17 @@ function Communities() {
 
     if (!userId) return <div>Please log in to see communities.</div>;
 
+    const btnStyle = {
+        padding: "8px 16px",
+        background: "linear-gradient(135deg, #df860a, #f5a623)",
+        color: "white",
+        border: "none",
+        borderRadius: "20px",
+        cursor: "pointer",
+        fontWeight: "600",
+        fontSize: "14px"
+    };
+
     return (
         <div>
             <h1>Communities</h1>
@@ -210,26 +221,55 @@ function Communities() {
 
             <hr />
 
-            <div>
-                <h2>Search Communities</h2>
-                <form onSubmit={handleSearch}>
-                    <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search..." />
-                    <button type="submit">Search</button>
+            <div style={{ marginBottom: "30px" }}>
+                <h2 style={{ fontSize: "1.2rem", color: "#df860a", marginBottom: "15px" }}>Search Communities</h2>
+                <form onSubmit={handleSearch} style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+                    <input 
+                        value={searchQuery} 
+                        onChange={(e) => setSearchQuery(e.target.value)} 
+                        placeholder="Search communities..." 
+                        style={{
+                            flex: 1,
+                            padding: "12px 20px",
+                            borderRadius: "25px",
+                            border: "1px solid rgba(223, 134, 10, 0.3)",
+                            outline: "none",
+                            background: "rgba(255, 255, 255, 0.9)",
+                            boxShadow: "0 2px 10px rgba(0,0,0,0.02)"
+                        }}
+                    />
+                    <button type="submit" style={{
+                        padding: "0 20px",
+                        background: "linear-gradient(135deg, #df860a, #f5a623)",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "25px",
+                        cursor: "pointer",
+                        fontWeight: "600"
+                    }}>Search</button>
                 </form>
-                <ul>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                     {searchResults.map(c => (
-                        <li key={c._id}>
-                            {c.name} ({c.type})
+                        <div key={c._id} style={{
+                            padding: "15px",
+                            background: "rgba(255, 255, 255, 0.6)",
+                            borderRadius: "12px",
+                            border: "1px solid rgba(0,0,0,0.05)",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center"
+                        }}>
+                            <span style={{ fontWeight: "600" }}>{c.name} <span style={{ fontSize: "0.8em", color: "#888" }}>({c.type})</span></span>
                             {c.members?.includes(userId) ? (
-                                <span> (Joined)</span>
+                                <span style={{ color: "#34c759", fontWeight: "600", fontSize: "14px" }}>Joined</span>
                             ) : c.type === "public" ? (
-                                <button onClick={() => handleJoin(c._id)}>Join</button>
+                                <button onClick={() => handleJoin(c._id)} style={btnStyle}>Join</button>
                             ) : (
-                                <button onClick={() => handleRequestJoin(c._id)}>Request to Join</button>
+                                <button onClick={() => handleRequestJoin(c._id)} style={btnStyle}>Request</button>
                             )}
-                        </li>
+                        </div>
                     ))}
-                </ul>
+                </div>
             </div>
 
             <hr />

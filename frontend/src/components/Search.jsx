@@ -33,7 +33,7 @@ useEffect(
         <div>
             {userlist.map((user) =>(
                 <div key={user._id}>
-                    <Link to={`/profile/${user._id}`} > {user.name}</Link>
+                    <Link to={`/profile/${user._id}`} > {user.username}</Link>
                    
                 </div>
             )

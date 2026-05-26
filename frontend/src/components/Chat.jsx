@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { io } from 'socket.io-client';
 
@@ -10,8 +10,8 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
     const { chatterId } = useParams();
     const navigate = useNavigate();
     const userId = JSON.parse(localStorage.getItem("user") || "{}").userId;
-    const name = JSON.parse(localStorage.getItem("user") || "{}").name;
-    
+    const currentUsername = JSON.parse(localStorage.getItem("user") || "{}").username;
+
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
     const [chatterName, setChatterName] = useState("");
@@ -34,7 +34,7 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
     const deleteMessages = async (type) => {
         if (selectedMessages.length === 0) return;
         const messageIds = selectedMessages.map(msg => msg._id);
-        
+
         try {
             const res = await axios.post(`${API_URL}/messages/delete`, {
                 messageIds,
@@ -56,7 +56,7 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
     };
 
     const canDeletePermanently = selectedMessages.length > 0 && selectedMessages.every(msg => msg.senderId.toString() === userId.toString());
-    
+
     // Pagination states
     const [skip, setSkip] = useState(0);
     const [hasMore, setHasMore] = useState(true);
@@ -125,7 +125,7 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                 setMessages((prev) => [...prev, message]);
                 // Auto-mark as read since user is in the chat
                 if (message.senderId.toString() === chatterId) {
-                    axios.post(`${API_URL}/markread`, { userId, chatterId }).catch(() => {});
+                    axios.post(`${API_URL}/markread`, { userId, chatterId }).catch(() => { });
                 }
             }
         };
@@ -213,7 +213,7 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
             };
 
             const res = await axios.post(`${API_URL}/sendmessage`, messageData);
-            
+
             shouldScrollToBottomRef.current = true;
             socket.emit("send_message", res.data);
 
@@ -240,7 +240,7 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                 data
             );
             setIsUploading(false);
-            
+
             const messageData = {
                 senderId: userId,
                 receiverId: chatterId,
@@ -249,7 +249,7 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
 
             const sendRes = await axios.post(`${API_URL}/sendmessage`, messageData);
             socket.emit("send_message", sendRes.data);
-            
+
         } catch (error) {
             setIsUploading(false);
             console.error("Upload error:", error);
@@ -262,35 +262,40 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
     }
 
     return (
-        <div style={{ 
-            height: "80vh", 
-            display: "flex", 
+        <div style={{
+            height: "100%",
+            width: "100%",
+            display: "flex",
             flexDirection: "column",
-            maxWidth: "800px",
-            margin: "0 auto",
+            boxSizing: "border-box",
             fontFamily: "'Inter', sans-serif"
         }}>
-            <div style={{ 
-                padding: "15px", 
-                borderBottom: "1px solid #ddd", 
-                display: "flex", 
+            <div style={{
+                padding: "15px 20px",
+                borderBottom: "1px solid rgba(0,0,0,0.05)",
+                display: "flex",
                 alignItems: "center",
-                gap: "10px"
+                gap: "15px",
+                background: "rgba(255, 255, 255, 0.8)",
+                backdropFilter: "blur(10px)",
+                position: "sticky",
+                top: 0,
+                zIndex: 10
             }}>
                 {chatterImage && (
-                    <img 
-                        src={chatterImage} 
-                        alt="" 
-                        style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} 
+                    <img
+                        src={chatterImage}
+                        alt=""
+                        style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }}
                     />
                 )}
-                <h2>{chatterName}</h2>
-                <button 
+                <h2><Link to={`/profile/${chatterId}`} >{chatterName}</Link></h2>
+                <button
                     onClick={() => {
                         setIsSelectionMode(!isSelectionMode);
                         setSelectedMessages([]);
-                    }} 
-                    style={{ 
+                    }}
+                    style={{
                         marginLeft: "auto",
                         marginRight: "10px",
                         padding: "5px 12px",
@@ -301,22 +306,22 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                         cursor: "pointer"
                     }}
                 >
-                    {isSelectionMode ? "Cancel" : "Select"}
+                    {isSelectionMode ? "Cancel" : "Delete"}
                 </button>
-                <button onClick={() => navigate(-1)}>
+                <button onClick={() => navigate(-1)} className="hide-on-desktop">
                     Back
                 </button>
             </div>
 
-            <div 
+            <div
                 ref={chatContainerRef}
                 onScroll={handleScroll}
-                style={{ 
-                flex: 1, 
-                padding: "20px", 
-                overflowY: "auto",
-                backgroundColor: "#f9f9f9"
-            }}>
+                style={{
+                    flex: 1,
+                    padding: "20px",
+                    overflowY: "auto",
+                    backgroundColor: "transparent"
+                }}>
                 {loading ? (
                     <p>Loading messages...</p>
                 ) : messages.length === 0 ? (
@@ -327,101 +332,114 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                     <>
                         {isLoadingMore && <div style={{ textAlign: "center", padding: "10px", color: "#888" }}>Loading older messages...</div>}
                         {messages.map((msg, index) => (
-                        <div
-                            key={msg._id || index}
-                            onClick={() => isSelectionMode && toggleSelectMessage(msg)}
-                            style={{
-                                marginBottom: "15px",
-                                display: "flex",
-                                justifyContent: msg.senderId.toString() === userId ? "flex-end" : "flex-start",
-                                alignItems: "center",
-                                gap: "10px",
-                                cursor: isSelectionMode ? "pointer" : "default"
-                            }}
-                        >
-                            {isSelectionMode && (
-                                <input
-                                    type="checkbox"
-                                    checked={selectedMessages.some(m => m._id === msg._id)}
-                                    onChange={() => toggleSelectMessage(msg)}
-                                    onClick={(e) => e.stopPropagation()}
-                                />
-                            )}
-                            <div style={{
-                                maxWidth: "60%",
-                                padding: "10px 15px",
-                                borderRadius: "18px",
-                                backgroundColor: msg.senderId.toString() === userId ? "#007bff" : "#e9ecef",
-                                color: msg.senderId.toString() === userId ? "white" : "#333",
-                                wordWrap: "break-word"
-                            }}>
-                                {(() => {
-                                    if (msg.message.includes(`${import.meta.env.VITE_FRONTEND_URL}/blog/`)) {
-                                        const urlMatch = msg.message.match(new RegExp(`${import.meta.env.VITE_FRONTEND_URL}/blog/([a-zA-Z0-9_]+)`));
-                                        if (urlMatch) {
-                                            const path = `/blog/${urlMatch[1]}`;
+                            <div
+                                key={msg._id || index}
+                                onClick={() => isSelectionMode && toggleSelectMessage(msg)}
+                                style={{
+                                    marginBottom: "15px",
+                                    display: "flex",
+                                    justifyContent: msg.senderId.toString() === userId ? "flex-end" : "flex-start",
+                                    alignItems: "center",
+                                    gap: "10px",
+                                    cursor: isSelectionMode ? "pointer" : "default"
+                                }}
+                            >
+                                {isSelectionMode && (
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedMessages.some(m => m._id === msg._id)}
+                                        onChange={() => toggleSelectMessage(msg)}
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                )}
+                                <div style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: msg.senderId.toString() === userId ? "flex-end" : "flex-start",
+                                    maxWidth: "75%"
+                                }}>
+                                    <div style={{
+                                        display: "inline-block",
+                                        padding: "12px 18px",
+                                        borderRadius: "20px",
+                                        borderBottomRightRadius: msg.senderId.toString() === userId ? "4px" : "20px",
+                                        borderBottomLeftRadius: msg.senderId.toString() !== userId ? "4px" : "20px",
+                                        background: msg.senderId.toString() === userId ? "linear-gradient(135deg, #df860a, #f5a623)" : "rgba(255, 255, 255, 0.9)",
+                                        color: msg.senderId.toString() === userId ? "white" : "#333",
+                                        wordWrap: "break-word",
+                                        boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
+                                        border: msg.senderId.toString() === userId ? "none" : "1px solid rgba(0,0,0,0.05)"
+                                    }}>
+                                    {(() => {
+                                        if (msg.message.includes(`${import.meta.env.VITE_FRONTEND_URL}/blog/`)) {
+                                            const urlMatch = msg.message.match(new RegExp(`${import.meta.env.VITE_FRONTEND_URL}/blog/([a-zA-Z0-9_]+)`));
+                                            if (urlMatch) {
+                                                const path = `/blog/${urlMatch[1]}`;
+                                                return (
+                                                    <span
+                                                        onClick={() => navigate(path)}
+                                                        style={{ cursor: "pointer", textDecoration: "underline" }}
+                                                    >
+                                                        {msg.message}
+                                                    </span>
+                                                );
+                                            }
+                                        }
+                                        if (msg.message.includes("cloudinary.com")) {
+                                            let thumbUrl = msg.message;
+                                            const dotIndex = thumbUrl.lastIndexOf('.');
+                                            if (dotIndex !== -1 && dotIndex > thumbUrl.lastIndexOf('/')) {
+                                                thumbUrl = thumbUrl.substring(0, dotIndex) + '.jpg';
+                                            }
+
+                                            // Optimize load time by requesting a smaller, compressed version
+                                            thumbUrl = thumbUrl.replace("/upload/", "/upload/w_400,c_limit,q_auto,f_auto/");
+
                                             return (
-                                                <span 
-                                                    onClick={() => navigate(path)} 
-                                                    style={{ cursor: "pointer", textDecoration: "underline" }}
-                                                >
-                                                    {msg.message}
-                                                </span>
+                                                <a href={msg.message} target="_blank" rel="noopener noreferrer">
+                                                    <img
+                                                        src={thumbUrl}
+                                                        alt="shared file"
+                                                        style={{ maxWidth: "100%", borderRadius: "8px", marginTop: "5px", maxHeight: "300px", display: "block" }}
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = "https://via.placeholder.com/150?text=File";
+                                                        }}
+                                                    />
+                                                </a>
                                             );
                                         }
-                                    }
-                                    if (msg.message.includes("cloudinary.com")) {
-                                        let thumbUrl = msg.message;
-                                        const dotIndex = thumbUrl.lastIndexOf('.');
-                                        if (dotIndex !== -1 && dotIndex > thumbUrl.lastIndexOf('/')) {
-                                            thumbUrl = thumbUrl.substring(0, dotIndex) + '.jpg';
-                                        }
-                                        
-                                        // Optimize load time by requesting a smaller, compressed version
-                                        thumbUrl = thumbUrl.replace("/upload/", "/upload/w_400,c_limit,q_auto,f_auto/");
-
-                                        return (
-                                            <a href={msg.message} target="_blank" rel="noopener noreferrer">
-                                                <img 
-                                                    src={thumbUrl} 
-                                                    alt="shared file" 
-                                                    style={{ maxWidth: "100%", borderRadius: "8px", marginTop: "5px", maxHeight: "300px", display: "block" }}
-                                                    onError={(e) => {
-                                                        e.target.onerror = null; 
-                                                        e.target.src = "https://via.placeholder.com/150?text=File";
-                                                    }}
-                                                />
-                                            </a>
-                                        );
-                                    }
-                                    return msg.message;
-                                })()}
-                                <div style={{
-                                    fontSize: "12px",
-                                    opacity: 0.7,
-                                    marginTop: "5px",
-                                    textAlign: msg.senderId.toString() === userId ? "right" : "left"
-                                }}>
-                                    {new Date(msg.time).toLocaleTimeString()}
+                                        return msg.message;
+                                    })()}
+                                    </div>
+                                    <div style={{
+                                        fontSize: "12px",
+                                        opacity: 0.7,
+                                        marginTop: "5px",
+                                        textAlign: msg.senderId.toString() === userId ? "right" : "left"
+                                    }}>
+                                        {new Date(msg.time).toLocaleTimeString()}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
                     </>
                 )}
                 <div ref={messagesEndRef} />
             </div>
 
-            <form onSubmit={sendMessage} style={{ 
-                padding: "15px", 
-                borderTop: "1px solid #ddd",
+            <form onSubmit={sendMessage} style={{
+                padding: "15px",
+                borderTop: "1px solid rgba(0,0,0,0.05)",
                 display: "flex",
                 gap: "10px",
                 alignItems: "center",
-                position: "relative"
+                position: "relative",
+                background: "rgba(255, 255, 255, 0.8)",
+                backdropFilter: "blur(10px)"
             }}>
                 <div style={{ position: "relative" }}>
-                    <button 
+                    <button
                         type="button"
                         onClick={() => setShowShareMenu(!showShareMenu)}
                         style={{
@@ -492,21 +510,23 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                     }}
                     onKeyPress={(e) => e.key === 'Enter' && sendMessage(e)}
                 />
-                <button 
+                <button
                     type="submit"
                     style={{
                         padding: "12px 20px",
-                        backgroundColor: "#007bff",
+                        background: "linear-gradient(135deg, #df860a, #f5a623)",
                         color: "white",
                         border: "none",
                         borderRadius: "25px",
-                        cursor: "pointer"
+                        cursor: "pointer",
+                        fontWeight: "600",
+                        boxShadow: "0 4px 10px rgba(223, 134, 10, 0.3)"
                     }}
                 >
                     Send
                 </button>
             </form>
-            
+
             {selectedMessages.length > 0 && (
                 <div style={{
                     position: "absolute",
@@ -527,14 +547,14 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                 }}>
                     <span style={{ fontWeight: "500", color: "#333" }}>{selectedMessages.length} message(s) selected</span>
                     <div style={{ display: "flex", gap: "10px" }}>
-                        <button 
+                        <button
                             onClick={() => deleteMessages("for_me")}
                             style={{ padding: "8px 15px", background: "#6c757d", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer", fontWeight: "600" }}
                         >
                             Delete for me
                         </button>
                         {canDeletePermanently && (
-                            <button 
+                            <button
                                 onClick={() => deleteMessages("permanently")}
                                 style={{ padding: "8px 15px", background: "#dc3545", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer", fontWeight: "600" }}
                             >

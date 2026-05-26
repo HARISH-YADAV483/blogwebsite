@@ -30,7 +30,7 @@ function Notification({unreadCount, setUnreadCount}) {
         setmessage(res.data.message);
         setUnreadCount((prev) => Math.max(prev - 1, 0));
         setNotifications(prevnotifications =>
-        prevnotifications.filter(noti => noti._id !== id)
+        prevnotifications.filter(noti => noti._id !== id)       
       );
     })
     .catch(err =>{

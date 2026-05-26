@@ -37,9 +37,9 @@ function Login() {
             .then(res => {
                 setmessage(res.data.message);
                 if (res.data.token) {
-                    localStorage.setItem("user", JSON.stringify({ token: res.data.token, name: res.data.name, role: res.data.role, userId: res.data.userId }));
+                    localStorage.setItem("user", JSON.stringify({ token: res.data.token, username: res.data.username, role: res.data.role, userId: res.data.userId }));
                     if (typeof socket !== 'undefined') {
-                        socket.emit("setup_user", res.data.name);
+                        socket.emit("setup_user", res.data.username);
                     }
                     navigate("/");
                 }
@@ -52,6 +52,9 @@ function Login() {
 
     return (
         <><div className="lody">
+            <nav className="auth-mobile-nav">
+                <img src={blogchit} alt="blogCHIT" className="auth-nav-logo" />
+            </nav>
             <div className="information">
                 <div className="top"><p>Don't have an account? <Link to="/register" style={{color:"rgb(196, 90, 3)" , textDecoration:"none"}}>Register</Link></p></div>
                 <div className="welcome">

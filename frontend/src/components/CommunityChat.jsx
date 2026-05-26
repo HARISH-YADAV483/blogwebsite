@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate , Link} from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { io } from 'socket.io-client';
 
@@ -10,7 +10,7 @@ function CommunityChat() {
     const { communityId } = useParams();
     const navigate = useNavigate();
     const userId = JSON.parse(localStorage.getItem("user") || "{}").userId;
-    
+
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
     const [communityName, setCommunityName] = useState("");
@@ -32,7 +32,7 @@ function CommunityChat() {
     const deleteMessages = async (type) => {
         if (selectedMessages.length === 0) return;
         const messageIds = selectedMessages.map(msg => msg._id);
-        
+
         try {
             const res = await axios.post(`${API_URL}/community/messages/delete`, {
                 messageIds,
@@ -54,7 +54,7 @@ function CommunityChat() {
     };
 
     const canDeletePermanently = selectedMessages.length > 0 && selectedMessages.every(msg => msg.senderId.toString() === userId.toString());
-    
+
     // Pagination states
     const [skip, setSkip] = useState(0);
     const [hasMore, setHasMore] = useState(true);
@@ -177,7 +177,7 @@ function CommunityChat() {
             };
 
             const res = await axios.post(`${API_URL}/community/${communityId}/sendmessage`, messageData);
-            
+
             shouldScrollToBottomRef.current = true;
             socket.emit("send_community_message", res.data);
 
@@ -204,7 +204,7 @@ function CommunityChat() {
                 data
             );
             setIsUploading(false);
-            
+
             const messageData = {
                 senderId: userId,
                 message: res.data.secure_url
@@ -212,7 +212,7 @@ function CommunityChat() {
 
             const sendRes = await axios.post(`${API_URL}/community/${communityId}/sendmessage`, messageData);
             socket.emit("send_community_message", sendRes.data);
-            
+
         } catch (error) {
             setIsUploading(false);
             console.error("Upload error:", error);
@@ -225,29 +225,34 @@ function CommunityChat() {
     }
 
     return (
-        <div style={{ 
-            height: "80vh", 
-            display: "flex", 
+        <div style={{
+            height: "100%",
+            width: "100%",
+            display: "flex",
             flexDirection: "column",
-            maxWidth: "800px",
-            margin: "0 auto",
+            boxSizing: "border-box",
             fontFamily: "'Inter', sans-serif"
         }}>
-            <div style={{ 
-                padding: "15px", 
-                borderBottom: "1px solid #ddd", 
-                display: "flex", 
+            <div style={{
+                padding: "15px 20px",
+                borderBottom: "1px solid rgba(0,0,0,0.05)",
+                display: "flex",
                 alignItems: "center",
-                gap: "10px"
-            }}><Link to={`/community/${communityId}`} >
-                <h2>{communityName || "Community Chat"}</h2>
+                gap: "15px",
+                background: "rgba(255, 255, 255, 0.8)",
+                backdropFilter: "blur(10px)",
+                position: "sticky",
+                top: 0,
+                zIndex: 10
+            }}><Link to={`/community/${communityId}`} style={{ textDecoration: "none", color: "#333", flex: 1 }}>
+                    <h2 style={{ margin: 0, fontSize: "1.2rem" }}>{communityName || "Community Chat"}</h2>
                 </Link>
-                <button 
+                <button
                     onClick={() => {
                         setIsSelectionMode(!isSelectionMode);
                         setSelectedMessages([]);
-                    }} 
-                    style={{ 
+                    }}
+                    style={{
                         marginLeft: "auto",
                         marginRight: "10px",
                         padding: "5px 12px",
@@ -258,22 +263,22 @@ function CommunityChat() {
                         cursor: "pointer"
                     }}
                 >
-                    {isSelectionMode ? "Cancel" : "Select"}
+                    {isSelectionMode ? "Cancel" : "Delete"}
                 </button>
-                <button onClick={() => navigate(-1)}>
+                <button onClick={() => navigate(-1)} className="hide-on-desktop">
                     Back
                 </button>
             </div>
 
-            <div 
+            <div
                 ref={chatContainerRef}
                 onScroll={handleScroll}
-                style={{ 
-                flex: 1, 
-                padding: "20px", 
-                overflowY: "auto",
-                backgroundColor: "#f9f9f9"
-            }}>
+                style={{
+                    flex: 1,
+                    padding: "20px",
+                    overflowY: "auto",
+                    backgroundColor: "transparent"
+                }}>
                 {loading ? (
                     <p>Loading messages...</p>
                 ) : messages.length === 0 ? (
@@ -284,111 +289,115 @@ function CommunityChat() {
                     <>
                         {isLoadingMore && <div style={{ textAlign: "center", padding: "10px", color: "#888" }}>Loading older messages...</div>}
                         {messages.map((msg, index) => (
-                        <div
-                            key={msg._id || index}
-                            onClick={() => isSelectionMode && toggleSelectMessage(msg)}
-                            style={{
-                                marginBottom: "15px",
-                                display: "flex",
-                                flexDirection: "row",
-                                alignItems: "center",
-                                justifyContent: msg.senderId.toString() === userId ? "flex-end" : "flex-start",
-                                gap: "10px",
-                                cursor: isSelectionMode ? "pointer" : "default"
-                            }}
-                        >
-                            {isSelectionMode && (
-                                <input
-                                    type="checkbox"
-                                    checked={selectedMessages.some(m => m._id === msg._id)}
-                                    onChange={() => toggleSelectMessage(msg)}
-                                    onClick={(e) => e.stopPropagation()}
-                                />
-                            )}
-                            <div style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: msg.senderId.toString() === userId ? "flex-end" : "flex-start",
-                                maxWidth: "60%"
-                            }}>
-                                {msg.senderId.toString() !== userId && (
-                                    <span style={{ fontSize: "12px", color: "#666", marginBottom: "2px", marginLeft: "10px" }}>User {msg.senderId.substring(0,4)}</span>
+                            <div
+                                key={msg._id || index}
+                                onClick={() => isSelectionMode && toggleSelectMessage(msg)}
+                                style={{
+                                    marginBottom: "15px",
+                                    display: "flex",
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    justifyContent: msg.senderId.toString() === userId ? "flex-end" : "flex-start",
+                                    gap: "10px",
+                                    cursor: isSelectionMode ? "pointer" : "default"
+                                }}
+                            >
+                                {isSelectionMode && (
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedMessages.some(m => m._id === msg._id)}
+                                        onChange={() => toggleSelectMessage(msg)}
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
                                 )}
                                 <div style={{
-                                    width: "100%",
-                                    padding: "10px 15px",
-                                    borderRadius: "18px",
-                                    backgroundColor: msg.senderId.toString() === userId ? "#007bff" : "#e9ecef",
-                                    color: msg.senderId.toString() === userId ? "white" : "#333",
-                                    wordWrap: "break-word"
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: msg.senderId.toString() === userId ? "flex-end" : "flex-start",
+                                    maxWidth: "60%"
                                 }}>
-                                {(() => {
-                                    if (msg.message.includes(`${import.meta.env.VITE_FRONTEND_URL}/blog/`)) {
-                                        const urlMatch = msg.message.match(new RegExp(`${import.meta.env.VITE_FRONTEND_URL}/blog/([a-zA-Z0-9_]+)`));
-                                        if (urlMatch) {
-                                            const path = `/blog/${urlMatch[1]}`;
-                                            return (
-                                                <span 
-                                                    onClick={() => navigate(path)} 
-                                                    style={{ cursor: "pointer", textDecoration: "underline" }}
-                                                >
-                                                    {msg.message}
-                                                </span>
-                                            );
-                                        }
-                                    }
-                                    if (msg.message.includes("cloudinary.com")) {
-                                        let thumbUrl = msg.message;
-                                        const dotIndex = thumbUrl.lastIndexOf('.');
-                                        if (dotIndex !== -1 && dotIndex > thumbUrl.lastIndexOf('/')) {
-                                            thumbUrl = thumbUrl.substring(0, dotIndex) + '.jpg';
-                                        }
-                                        
-                                        thumbUrl = thumbUrl.replace("/upload/", "/upload/w_400,c_limit,q_auto,f_auto/");
+                                    {msg.senderId.toString() !== userId && (
+                                        <span style={{ fontSize: "12px", color: "#666", marginBottom: "2px", marginLeft: "10px" }}>User {msg.senderId.substring(0, 4)}</span>
+                                    )}
+                                    <div style={{
+                                        width: "100%",
+                                        padding: "12px 18px",
+                                        borderRadius: "20px",
+                                        background: msg.senderId.toString() === userId ? "linear-gradient(135deg, #df860a, #f5a623)" : "rgba(255, 255, 255, 0.9)",
+                                        color: msg.senderId.toString() === userId ? "white" : "#333",
+                                        wordWrap: "break-word",
+                                        boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
+                                        border: msg.senderId.toString() === userId ? "none" : "1px solid rgba(0,0,0,0.05)"
+                                    }}>
+                                        {(() => {
+                                            if (msg.message.includes(`${import.meta.env.VITE_FRONTEND_URL}/blog/`)) {
+                                                const urlMatch = msg.message.match(new RegExp(`${import.meta.env.VITE_FRONTEND_URL}/blog/([a-zA-Z0-9_]+)`));
+                                                if (urlMatch) {
+                                                    const path = `/blog/${urlMatch[1]}`;
+                                                    return (
+                                                        <span
+                                                            onClick={() => navigate(path)}
+                                                            style={{ cursor: "pointer", textDecoration: "underline" }}
+                                                        >
+                                                            {msg.message}
+                                                        </span>
+                                                    );
+                                                }
+                                            }
+                                            if (msg.message.includes("cloudinary.com")) {
+                                                let thumbUrl = msg.message;
+                                                const dotIndex = thumbUrl.lastIndexOf('.');
+                                                if (dotIndex !== -1 && dotIndex > thumbUrl.lastIndexOf('/')) {
+                                                    thumbUrl = thumbUrl.substring(0, dotIndex) + '.jpg';
+                                                }
 
-                                        return (
-                                            <a href={msg.message} target="_blank" rel="noopener noreferrer">
-                                                <img 
-                                                    src={thumbUrl} 
-                                                    alt="shared file" 
-                                                    style={{ maxWidth: "100%", borderRadius: "8px", marginTop: "5px", maxHeight: "300px", display: "block" }}
-                                                    onError={(e) => {
-                                                        e.target.onerror = null; 
-                                                        e.target.src = "https://via.placeholder.com/150?text=File";
-                                                    }}
-                                                />
-                                            </a>
-                                        );
-                                    }
-                                    return msg.message;
-                                })()}
-                                <div style={{
-                                    fontSize: "12px",
-                                    opacity: 0.7,
-                                    marginTop: "5px",
-                                    textAlign: msg.senderId.toString() === userId ? "right" : "left"
-                                }}>
-                                    {new Date(msg.time).toLocaleTimeString()}
+                                                thumbUrl = thumbUrl.replace("/upload/", "/upload/w_400,c_limit,q_auto,f_auto/");
+
+                                                return (
+                                                    <a href={msg.message} target="_blank" rel="noopener noreferrer">
+                                                        <img
+                                                            src={thumbUrl}
+                                                            alt="shared file"
+                                                            style={{ maxWidth: "100%", borderRadius: "8px", marginTop: "5px", maxHeight: "300px", display: "block" }}
+                                                            onError={(e) => {
+                                                                e.target.onerror = null;
+                                                                e.target.src = "https://via.placeholder.com/150?text=File";
+                                                            }}
+                                                        />
+                                                    </a>
+                                                );
+                                            }
+                                            return msg.message;
+                                        })()}
+                                        <div style={{
+                                            fontSize: "12px",
+                                            opacity: 0.7,
+                                            marginTop: "5px",
+                                            textAlign: msg.senderId.toString() === userId ? "right" : "left"
+                                        }}>
+                                            {new Date(msg.time).toLocaleTimeString()}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        </div>
-                    ))}
+                        ))}
                     </>
                 )}
                 <div ref={messagesEndRef} />
             </div>
 
-            <form onSubmit={sendMessage} style={{ 
-                padding: "15px", 
-                borderTop: "1px solid #ddd",
+            <form onSubmit={sendMessage} style={{
+                padding: "15px",
+                borderTop: "1px solid rgba(0,0,0,0.05)",
                 display: "flex",
                 gap: "10px",
                 alignItems: "center",
-                position: "relative"
+                position: "relative",
+                background: "rgba(255, 255, 255, 0.8)",
+                backdropFilter: "blur(10px)"
             }}>
                 <div style={{ position: "relative" }}>
-                    <button 
+                    <button
                         type="button"
                         onClick={() => setShowShareMenu(!showShareMenu)}
                         style={{
@@ -459,15 +468,17 @@ function CommunityChat() {
                     }}
                     onKeyPress={(e) => e.key === 'Enter' && sendMessage(e)}
                 />
-                <button 
+                <button
                     type="submit"
                     style={{
                         padding: "12px 20px",
-                        backgroundColor: "#007bff",
+                        background: "linear-gradient(135deg, #df860a, #f5a623)",
                         color: "white",
                         border: "none",
                         borderRadius: "25px",
-                        cursor: "pointer"
+                        cursor: "pointer",
+                        fontWeight: "600",
+                        boxShadow: "0 4px 10px rgba(223, 134, 10, 0.3)"
                     }}
                 >
                     Send
@@ -494,14 +505,14 @@ function CommunityChat() {
                 }}>
                     <span style={{ fontWeight: "500", color: "#333" }}>{selectedMessages.length} message(s) selected</span>
                     <div style={{ display: "flex", gap: "10px" }}>
-                        <button 
+                        <button
                             onClick={() => deleteMessages("for_me")}
                             style={{ padding: "8px 15px", background: "#6c757d", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer", fontWeight: "600" }}
                         >
                             Delete for me
                         </button>
                         {canDeletePermanently && (
-                            <button 
+                            <button
                                 onClick={() => deleteMessages("permanently")}
                                 style={{ padding: "8px 15px", background: "#dc3545", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer", fontWeight: "600" }}
                             >

@@ -7,7 +7,10 @@ function Searchedprofile({ unreadCount, setUnreadCount }) {
     const { id } = useParams();
     const [blogs, setblogs] = useState([]); 
     const [image, setimage] = useState("");
-    const [Profilename, setname] = useState("");
+    const [Profilename, setusername] = useState("");
+    const [bc, setbc] = useState("");
+    const [bio, setbio] = useState("");
+    const [name, setname] = useState("");
     const [isfollowing, setisfollowing] = useState(false);
     const [followers, setfollowers] = useState([]);
     const [following, setfollowing] = useState([]);
@@ -15,17 +18,20 @@ function Searchedprofile({ unreadCount, setUnreadCount }) {
     // UI state for showing lists
     const [showFollowers, setShowFollowers] = useState(false);
     const [showFollowing, setShowFollowing] = useState(false);
-    const name = JSON.parse(localStorage.getItem("user") || "{}").name;
+    const currentUsername = JSON.parse(localStorage.getItem("user") || "{}").username;
     const userId = JSON.parse(localStorage.getItem("user") || "{}").userId;
     const getprofile = async () => {
         try {
-            const res = await axios.post(`${API_URL}/searchprofile`, { id, name });
+            const res = await axios.post(`${API_URL}/searchprofile`, { id, username: currentUsername });
             setblogs(res.data.veriblogs);
-            setname(res.data.name);
+            setusername(res.data.username);
             setimage(res.data.image);
             setisfollowing(res.data.isfollowing || false);
             setfollowers(res.data.followers || []);
             setfollowing(res.data.following || []);
+            setname(res.data.name);
+            setbc(res.data.bc);
+            setbio(res.data.bio);
         } catch (err) {
             console.error("Error fetching profile:", err);
         }
@@ -50,7 +56,10 @@ function Searchedprofile({ unreadCount, setUnreadCount }) {
     }, [id]);
     return (
         <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto", fontFamily: "'Inter', sans-serif" }}>
-            <h1>{Profilename}</h1>
+            <h1 >{Profilename}</h1>
+            <h3>{name}</h3>
+            <h3>{bio}</h3>
+            <h3>{bc}</h3>
             {image && (
                 <img src={image} alt="" style={{ width: "150px", height: "150px", borderRadius: "50%", objectFit: "cover", marginBottom: "15px" }} />
             )}
@@ -102,7 +111,7 @@ function Searchedprofile({ unreadCount, setUnreadCount }) {
                     ) : (
                         followers.map((f) => (
                             <div key={f._id} style={{ padding: "5px 0" }}>
-                                <Link to={`/searchedprofile/${f._id}`}>{f.name}</Link>
+                                <Link to={`/searchedprofile/${f._id}`}>{f.username}</Link>
                             </div>
                         ))
                     )}
@@ -117,7 +126,7 @@ function Searchedprofile({ unreadCount, setUnreadCount }) {
                     ) : (
                         following.map((f) => (
                             <div key={f._id} style={{ padding: "5px 0" }}>
-                                <Link to={`/searchedprofile/${f._id}`}>{f.name}</Link>
+                                <Link to={`/searchedprofile/${f._id}`}>{f.username}</Link>
                             </div>
                         ))
                     )}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import blogchitLogo from '../assets/blogchit.png';
 
 import { io } from 'socket.io-client';
 import axios from 'axios'
@@ -10,7 +11,7 @@ const socket = io(import.meta.env.VITE_SOCKET_URL);
 
 function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount, unreadPerChatter, setUnreadPerChatter, unreadChatters, setUnreadChatters }) {
     const userData = JSON.parse(localStorage.getItem("user") || "{}");
-    const name = userData.name || null;
+    const currentUsername = userData.username || null;
     const userId = userData.userId || null;
     const [message , setmessage] = useState("");
     const [token, setToken] = useState(userData.token || null);
@@ -27,23 +28,9 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
         }
     }, [token]);
 
-    const handleLogout = () => {
-        axios.post(`${API_URL}/logout`)
-            .then(res => {
-                setmessage(res.data.message);
-                setToken(null);
-                setIsLoggedIn(false);
-                
-                   navigate("/");
-            })
-            .catch(err => {
-                console.error(err);
-                setmessage("Logout failed");
-            });
-    };
     useEffect(() => {
 
-        if (name) {
+        if (currentUsername) {
             socket.emit("setup_user", userId);
 
             //Initial fetch of notifications
@@ -97,10 +84,27 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
             socket.off("receive_notification", handleNewNotification);
             socket.off("new_unread_message", handleNewUnreadMessage);
         };
-    }, [name]);
+    }, [currentUsername]);
 
     return (<>
-        <div className="main" style={{ display: "flex", justifyContent: "space-around" }}>
+        {/* Mobile Top Navbar (< 1024px) */}
+        <div className="mobile-top-navbar">
+            <Link to="/">
+                <img src={blogchitLogo} alt="BlogChit" className="navbar-logo" />
+            </Link>
+            <div className="navbar-actions">
+                <Link to="/notti" className="nav-action-btn">
+                    🔔
+                    {unreadCount > 0 && <span className="nav-badge">{unreadCount}</span>}
+                </Link>
+                <Link to="/write" className="nav-action-btn">
+                    ✍️
+                </Link>
+            </div>
+        </div>
+
+        {/* Desktop Navbar (>= 1024px) */}
+        <div className="desktop-navbar main" style={{ display: "flex", justifyContent: "space-around" }}>
             <div style={{ position: "relative", display: "inline-block" }}>
                 <button style={{ position: "relative", padding: "10px", background: "#f0f0f0", border: "none", borderRadius: "5px", cursor: "pointer" }}>
                    <Link to={"/notti"}> 🔔 Notifications {unreadCount > 0 && <span style={{ position: "absolute", top: "-5px", right: "-5px", background: "red", color: "white", borderRadius: "50%", padding: "2px 6px", fontSize: "10px" }}>{unreadCount}</span>}</Link>
@@ -108,7 +112,6 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
 
             </div>
 
-            <button onClick={handleLogout}>Logout</button>
             {role === "admin" && (
                 <div><Link to={"/admin"}> admin</Link></div>
             )}
@@ -148,11 +151,12 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
 
         </div>
 
-        <hr />
+        <hr className="desktop-navbar-hr" />
     </>
     )
 }
 
 export default Navbar
+
 
 

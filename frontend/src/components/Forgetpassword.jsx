@@ -72,6 +72,9 @@ function Forget() {
     return (
         <>
         <div className="lody">
+            <nav className="auth-mobile-nav">
+                <img src={blogchit} alt="blogCHIT" className="auth-nav-logo" />
+            </nav>
             <div className="information">
                 <div className="top"><p>Remember your password? <Link to="/login" style={{color:"rgb(196, 90, 3)" , textDecoration:"none"}}>Login</Link></p></div>
                 

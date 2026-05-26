@@ -12,7 +12,7 @@ function Fullblog() {
     const [loading, setLoading] = useState(true);
     const [comment, setcomment] = useState("");
     const [comments, setcomments] = useState([]);
-    const name = JSON.parse(localStorage.getItem("user") || "{}").name
+    const name = JSON.parse(localStorage.getItem("user") || "{}").username
 
     const fetchBlog = async () => {
         try {
