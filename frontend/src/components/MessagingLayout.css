@@ -44,7 +44,7 @@
     /* Desktop: subtract the navbar (approx 45px including border/hr) */
     height: calc(100vh - 45px);
     width: 100%;
-background-color : rgb(254, 250, 243) !important;
+    background-color: rgb(254, 250, 243) !important;
     overflow: hidden;
     position: relative;
 }
@@ -72,13 +72,16 @@ background-color : rgb(254, 250, 243) !important;
 .messaging-sidebar::-webkit-scrollbar {
     width: 5px;
 }
+
 .messaging-sidebar::-webkit-scrollbar-track {
     background: transparent;
 }
+
 .messaging-sidebar::-webkit-scrollbar-thumb {
     background: rgba(223, 134, 10, 0.2);
     border-radius: 10px;
 }
+
 .messaging-sidebar::-webkit-scrollbar-thumb:hover {
     background: rgba(223, 134, 10, 0.4);
 }
@@ -240,8 +243,17 @@ background-color : rgb(254, 250, 243) !important;
 }
 
 @keyframes unreadPulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(0.85); }
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.6;
+        transform: scale(0.85);
+    }
 }
 
 /* --- Search input --- */
@@ -283,13 +295,11 @@ background-color : rgb(254, 250, 243) !important;
 .styleo-bg-pattern {
     position: absolute;
     inset: 0;
-    background: repeating-linear-gradient(
-        -45deg,
-        transparent,
-        transparent 40px,
-        rgba(219, 100, 2, 0.04) 40px,
-        rgba(219, 100, 2, 0.04) 41px
-    );
+    background: repeating-linear-gradient(-45deg,
+            transparent,
+            transparent 40px,
+            rgba(219, 100, 2, 0.04) 40px,
+            rgba(219, 100, 2, 0.04) 41px);
     z-index: 0;
     pointer-events: none;
 }
@@ -303,29 +313,46 @@ background-color : rgb(254, 250, 243) !important;
     animation: orbFloat 8s ease-in-out infinite;
     pointer-events: none;
 }
+
 .styleo-orb-1 {
-    width: 280px; height: 280px;
+    width: 280px;
+    height: 280px;
     background: radial-gradient(circle, #df860a 0%, transparent 70%);
-    top: -60px; right: -40px;
+    top: -60px;
+    right: -40px;
     animation-duration: 7s;
 }
+
 .styleo-orb-2 {
-    width: 200px; height: 200px;
+    width: 200px;
+    height: 200px;
     background: radial-gradient(circle, #FBBF6A 0%, transparent 70%);
-    bottom: 10%; left: 5%;
+    bottom: 10%;
+    left: 5%;
     animation-duration: 9s;
     animation-delay: -3s;
 }
+
 .styleo-orb-3 {
-    width: 150px; height: 150px;
+    width: 150px;
+    height: 150px;
     background: radial-gradient(circle, #F9D49A 0%, transparent 70%);
-    top: 40%; right: 15%;
+    top: 40%;
+    right: 15%;
     animation-duration: 11s;
     animation-delay: -6s;
 }
+
 @keyframes orbFloat {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50% { transform: translateY(-20px) scale(1.05); }
+
+    0%,
+    100% {
+        transform: translateY(0) scale(1);
+    }
+
+    50% {
+        transform: translateY(-20px) scale(1.05);
+    }
 }
 
 /* --- Desktop: hide mobile-only elements --- */

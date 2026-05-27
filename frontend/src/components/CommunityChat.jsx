@@ -41,6 +41,7 @@ function CommunityChat() {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
     const [communityName, setCommunityName] = useState("");
+    const [membersMap, setMembersMap] = useState({});
     const [loading, setLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
     const [showShareMenu, setShowShareMenu] = useState(false);
@@ -143,10 +144,28 @@ function CommunityChat() {
     const loadChat = async (currentSkip = 0) => {
         try {
             if (currentSkip === 0) {
-                // Fetch community details if needed
-                const commRes = await axios.get(`${API_URL}/community/search?q=`);
-                const comm = commRes.data.find(c => c._id === communityId);
-                if (comm) setCommunityName(comm.name);
+                // Fetch community details to get name and member list
+                try {
+                    const detailRes = await axios.get(`${API_URL}/communitydetail/${communityId}`);
+                    if (detailRes.data.name) setCommunityName(detailRes.data.name);
+                    
+                    const newMembersMap = {};
+                    if (detailRes.data.members) {
+                        detailRes.data.members.forEach(member => {
+                            newMembersMap[member._id] = member.name;
+                        });
+                    }
+                    if (detailRes.data.creator) {
+                        newMembersMap[detailRes.data.creator._id] = detailRes.data.creator.name;
+                    }
+                    setMembersMap(newMembersMap);
+                } catch (detailErr) {
+                    console.error("Error fetching community details:", detailErr);
+                    // Fallback
+                    const commRes = await axios.get(`${API_URL}/community/search?q=`);
+                    const comm = commRes.data.find(c => c._id === communityId);
+                    if (comm) setCommunityName(comm.name);
+                }
             } else {
                 setIsLoadingMore(true);
                 shouldScrollToBottomRef.current = false;
@@ -252,7 +271,7 @@ function CommunityChat() {
     }
 
     return (
-        <div style={{
+        <div className="chatt" style={{
             height: "100%",
             width: "100%",
             display: "flex",
@@ -260,17 +279,18 @@ function CommunityChat() {
             boxSizing: "border-box",
             fontFamily: "'Inter', sans-serif"
         }}>
-            <div style={{
+            <div className="colu" style={{
                 padding: "15px 20px",
-                borderBottom: "1px solid rgba(0,0,0,0.05)",
+                paddingRight: "0px !important",
+                borderBottom: ".1px solid rgba(91, 91, 91, 0.5)",
                 display: "flex",
                 alignItems: "center",
                 gap: "15px",
-                background: "rgba(255, 255, 255, 0.8)",
+                background: "transparent",
                 backdropFilter: "blur(10px)",
                 position: "sticky",
                 top: 0,
-                zIndex: 10
+                zIndex: 10,
             }}>
                 <LetterAvatar name={communityName} className="small" />
                 <Link to={`/community/${communityId}`} style={{ textDecoration: "none", color: "#1a1a1a", flex: 1 }}>
@@ -283,23 +303,51 @@ function CommunityChat() {
                     }}
                     style={{
                         marginLeft: "auto",
-                        marginRight: "10px",
-                        padding: "5px 12px",
-                        backgroundColor: isSelectionMode ? "#6c757d" : "#007bff",
-                        color: "white",
+                        marginRight: "6px",
+                        width: "38px",
+                        height: "38px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: isSelectionMode ? "#eaeaebff" : "#e9e6e6ff",
+                        color: "black",
                         border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer"
+                        borderRadius: "50%",
+                        cursor: "pointer",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                        padding: 0
                     }}
+                    title={isSelectionMode ? "Cancel" : "Delete"}
                 >
-                    {isSelectionMode ? "Cancel" : "Delete"}
+                    {isSelectionMode ? (
+                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    ) : (
+                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    )}
                 </button>
-                <button onClick={() => navigate(-1)} className="hide-on-desktop">
-                    Back
+                <button onClick={() => navigate(-1)} className="hide-on-desktop"
+                    style={{
+                        marginRight: "0px",
+                        width: "38px",
+                        height: "38px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "#e9e6e6ff",
+                        color: "black",
+                        border: "none",
+                        borderRadius: "50%",
+                        cursor: "pointer",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                        padding: 0
+                    }}
+                    title="Back"
+                >
+                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                 </button>
             </div>
 
-            <div
+            <div className="chatt"
                 ref={chatContainerRef}
                 onScroll={handleScroll}
                 style={{
@@ -346,7 +394,9 @@ function CommunityChat() {
                                     maxWidth: "60%"
                                 }}>
                                     {msg.senderId.toString() !== userId && (
-                                        <span style={{ fontSize: "12px", color: "#666", marginBottom: "2px", marginLeft: "10px" }}>User {msg.senderId.substring(0, 4)}</span>
+                                        <span style={{ fontSize: "12px", color: "#666", marginBottom: "2px", marginLeft: "10px", fontWeight: "500" }}>
+                                            {membersMap[msg.senderId] || `User ${msg.senderId.substring(0, 4)}`}
+                                        </span>
                                     )}
                                     <div style={{
                                         width: "100%",
@@ -415,15 +465,17 @@ function CommunityChat() {
                 <div ref={messagesEndRef} />
             </div>
 
-            <form onSubmit={sendMessage} style={{
-                padding: "15px",
-                borderTop: "1px solid rgba(0,0,0,0.05)",
+            <form className="co" onSubmit={sendMessage} style={{
+                padding: "5px",
+                border: ".1px solid rgba(78, 77, 77, 0.5)",
+                borderRadius:"45px",
                 display: "flex",
                 gap: "10px",
                 alignItems: "center",
                 position: "relative",
-                background: "rgba(255, 255, 255, 0.8)",
-                backdropFilter: "blur(10px)"
+                background: "transparent",
+                backdropFilter: "blur(10px)",
+                marginBottom:"5px"
             }}>
                 <div style={{ position: "relative" }}>
                     <button
@@ -500,17 +552,23 @@ function CommunityChat() {
                 <button
                     type="submit"
                     style={{
-                        padding: "12px 20px",
+                        width: "44px",
+                        height: "44px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                         background: "linear-gradient(135deg, #df860a, #f5a623)",
                         color: "white",
                         border: "none",
-                        borderRadius: "25px",
+                        borderRadius: "50%",
                         cursor: "pointer",
-                        fontWeight: "600",
-                        boxShadow: "0 4px 10px rgba(223, 134, 10, 0.3)"
+                        boxShadow: "0 4px 10px rgba(223, 134, 10, 0.3)",
+                        flexShrink: 0,
+                        padding: 0
                     }}
+                    title="Send Message"
                 >
-                    Send
+                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ transform: "translate(-1px, 1px)" }}><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 </button>
             </form>
 
