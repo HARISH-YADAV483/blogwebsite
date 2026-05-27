@@ -33,20 +33,28 @@ function App() {
     location.pathname === "/register" || 
     location.pathname === "/forgotpass";
   
-  const isMobileChatRoute = 
+  // Hide navbar on mobile for: messages, chat, communities, community chat
+  const hideNavbarMobile = 
+    location.pathname === "/messages" ||
+    location.pathname.startsWith("/chat/") || 
+    location.pathname === "/communities" ||
+    location.pathname.startsWith("/communities/") || 
+    location.pathname.startsWith("/communiy/") || 
+    location.pathname.startsWith("/community/");
+
+  // Hide footer on mobile for: chat and community chat only
+  const hideFooterMobile = 
     location.pathname.startsWith("/chat/") || 
     location.pathname.startsWith("/communiy/") || 
-    location.pathname.startsWith("/community/") || 
-    location.pathname.startsWith("/communities/") || 
-    location.pathname === "/messages";
+    location.pathname.startsWith("/community/");
 
   useEffect(() => {
-    if (isMobileChatRoute) {
-      document.body.classList.add("hide-nav-on-mobile-chat");
-    } else {
-      document.body.classList.remove("hide-nav-on-mobile-chat");
-    }
-  }, [isMobileChatRoute]);
+    document.body.classList.toggle("hide-navbar-mobile", hideNavbarMobile);
+    document.body.classList.toggle("hide-footer-mobile", hideFooterMobile);
+    return () => {
+      document.body.classList.remove("hide-navbar-mobile", "hide-footer-mobile");
+    };
+  }, [hideNavbarMobile, hideFooterMobile]);
 
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMsgCount, setUnreadMsgCount] = useState(0);

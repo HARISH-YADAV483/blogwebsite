@@ -1,47 +1,256 @@
+/* ========================================
+   MESSAGING LAYOUT — Premium Glassmorphism
+   ======================================== */
+
+/* --- Letter Avatar (fallback when no profile image) --- */
+.letter-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #df860a 0%, #f5a623 100%);
+    box-shadow: 0 4px 12px rgba(223, 134, 10, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    user-select: none;
+    letter-spacing: 0.5px;
+}
+
+.letter-avatar.small {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+    border-width: 1.5px;
+    box-shadow: 0 2px 8px rgba(223, 134, 10, 0.25);
+}
+
+.letter-avatar.tiny {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+    border-width: 1px;
+    box-shadow: 0 1px 4px rgba(223, 134, 10, 0.2);
+}
+
+/* --- Container --- */
 .messaging-layout-container {
     display: flex;
-    height: calc(100vh - 65px);
+    /* Desktop: subtract the navbar (approx 45px including border/hr) */
+    height: calc(100vh - 45px);
     width: 100%;
-    background: #fdfdfd;
+    background: #fafafa;
     overflow: hidden;
     position: relative;
 }
 
-/* Glassmorphism */
-.messaging-sidebar, .messaging-main {
+/* --- Glassmorphism base --- */
+.messaging-sidebar,
+.messaging-main {
     position: relative;
     z-index: 10;
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
 }
 
+/* --- Sidebar --- */
 .messaging-sidebar {
-    width: 350px;
-    border-right: 1px solid rgba(223, 134, 10, 0.2);
+    width: 400px;
+    border-right: 1px solid rgba(223, 134, 10, 0.12);
     overflow-y: auto;
     height: 100%;
     flex-shrink: 0;
 }
 
+/* Custom scrollbar for sidebar */
+.messaging-sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+.messaging-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.messaging-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(223, 134, 10, 0.2);
+    border-radius: 10px;
+}
+.messaging-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(223, 134, 10, 0.4);
+}
+
+/* --- Main chat area --- */
 .messaging-main {
     flex: 1;
     height: 100%;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
+/* --- Empty state --- */
 .empty-chat-placeholder {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: #df860a;
-    font-size: 18px;
+    color: #c4880a;
+    font-size: 17px;
     font-family: 'Inter', sans-serif;
+    opacity: 0.7;
+    gap: 8px;
 }
 
-/* Orbs from register.css */
+.empty-chat-placeholder p {
+    margin: 0;
+}
+
+/* --- Messages sidebar content --- */
+.messages-sidebar-content {
+    padding: 20px;
+    height: 100%;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.messages-sidebar-content h1 {
+    margin: 0 0 18px 0;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #1a1a1a;
+    letter-spacing: -0.5px;
+}
+
+/* --- Chatter card --- */
+.chatter-card {
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: rgba(255, 255, 255, 0.65);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.chatter-card:hover {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 6px 20px rgba(223, 134, 10, 0.08);
+    transform: translateY(-1px);
+    border-color: rgba(223, 134, 10, 0.15);
+}
+
+.chatter-card.has-unread {
+    border-color: rgba(223, 134, 10, 0.35);
+    background: rgba(223, 134, 10, 0.04);
+}
+
+.chatter-card .chatter-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    flex-shrink: 0;
+}
+
+.chatter-card .chatter-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.chatter-card .chatter-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+    text-decoration: none;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chatter-card.has-unread .chatter-name {
+    font-weight: 800;
+    color: #111;
+}
+
+.chatter-card .unread-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #df860a;
+    flex-shrink: 0;
+    box-shadow: 0 0 8px rgba(223, 134, 10, 0.5);
+    animation: unreadPulse 2s ease-in-out infinite;
+}
+
+.chatter-card .unread-badge {
+    background: linear-gradient(135deg, #df860a, #f5a623);
+    color: white;
+    border-radius: 12px;
+    padding: 3px 9px;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(223, 134, 10, 0.3);
+}
+
+@keyframes unreadPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.85); }
+}
+
+/* --- Search input --- */
+.messages-search-input {
+    width: 100%;
+    padding: 12px 20px;
+    border-radius: 25px;
+    border: 1px solid rgba(223, 134, 10, 0.2);
+    outline: none;
+    font-size: 14px;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.messages-search-input:focus {
+    border-color: rgba(223, 134, 10, 0.5);
+    box-shadow: 0 2px 16px rgba(223, 134, 10, 0.08);
+}
+
+.messages-search-input::placeholder {
+    color: #aaa;
+}
+
+/* --- Chat header avatar --- */
+.chat-header-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    flex-shrink: 0;
+}
+
+/* --- Animated Background Orbs --- */
 .styleo-bg-pattern {
     position: absolute;
     inset: 0;
@@ -49,19 +258,21 @@
         -45deg,
         transparent,
         transparent 40px,
-        rgba(219, 100, 2, 0.06) 40px,
-        rgba(219, 100, 2, 0.06) 41px
+        rgba(219, 100, 2, 0.04) 40px,
+        rgba(219, 100, 2, 0.04) 41px
     );
     z-index: 0;
+    pointer-events: none;
 }
 
 .styleo-orb {
     position: absolute;
     border-radius: 50%;
     filter: blur(80px);
-    opacity: 0.5;
+    opacity: 0.4;
     z-index: 0;
     animation: orbFloat 8s ease-in-out infinite;
+    pointer-events: none;
 }
 .styleo-orb-1 {
     width: 280px; height: 280px;
@@ -88,25 +299,86 @@
     50% { transform: translateY(-20px) scale(1.05); }
 }
 
+/* --- Desktop: hide mobile-only elements --- */
 @media (min-width: 1024px) {
     .hide-on-desktop {
         display: none !important;
     }
 }
 
+/* --- Mobile (<1024px) --- */
 @media (max-width: 1023px) {
     .messaging-layout-container {
-        /* Full viewport height accounting for mobile navbars */
-        height: calc(100vh - 128px);
+        /* On mobile, use available viewport minus dynamic nav and footer heights */
+        height: calc(100dvh - var(--mobile-nav-height, 0px) - var(--mobile-footer-height, 0px));
+        width: 100%;
     }
+
     .messaging-sidebar {
         width: 100%;
         border-right: none;
     }
+
     .messaging-main {
         width: 100%;
     }
+
     .hide-on-mobile {
         display: none !important;
+    }
+
+    /* Slightly smaller avatars on small screens */
+    .letter-avatar {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+    }
+
+    .chatter-card .chatter-avatar {
+        width: 44px;
+        height: 44px;
+    }
+
+    .chatter-card {
+        padding: 12px 14px;
+        gap: 12px;
+    }
+
+    .messages-sidebar-content {
+        padding: 16px;
+    }
+
+    .messages-sidebar-content h1 {
+        font-size: 1.4rem;
+        margin-bottom: 14px;
+    }
+}
+
+/* --- Tiny mobile (<480px) --- */
+@media (max-width: 480px) {
+    .messages-sidebar-content {
+        padding: 12px;
+    }
+
+    .messages-sidebar-content h1 {
+        font-size: 1.25rem;
+        margin-bottom: 12px;
+    }
+
+    .chatter-card {
+        padding: 10px 12px;
+        border-radius: 14px;
+        gap: 10px;
+    }
+
+    .letter-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .chatter-card .chatter-avatar {
+        width: 40px;
+        height: 40px;
     }
 }

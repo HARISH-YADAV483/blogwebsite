@@ -6,6 +6,33 @@ import { io } from 'socket.io-client';
 const API_URL = import.meta.env.VITE_API_URL;
 const socket = io(import.meta.env.VITE_SOCKET_URL);
 
+function getAvatarColor(name) {
+    const colors = [
+        ['#df860a', '#f5a623'], ['#6366f1', '#818cf8'], ['#ec4899', '#f472b6'],
+        ['#14b8a6', '#2dd4bf'], ['#f43f5e', '#fb7185'], ['#8b5cf6', '#a78bfa'],
+        ['#0ea5e9', '#38bdf8'], ['#f97316', '#fb923c'], ['#10b981', '#34d399'],
+        ['#e11d48', '#f43f5e'],
+    ];
+    let hash = 0;
+    for (let i = 0; i < (name || '').length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+}
+
+function LetterAvatar({ name, className = "" }) {
+    const letter = (name || "?").charAt(0).toUpperCase();
+    const [c1, c2] = getAvatarColor(name);
+    return (
+        <div
+            className={`letter-avatar ${className}`}
+            style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}
+        >
+            {letter}
+        </div>
+    );
+}
+
 function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
     const { chatterId } = useParams();
     const navigate = useNavigate();
@@ -282,14 +309,20 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                 top: 0,
                 zIndex: 10
             }}>
-                {chatterImage && (
+                {chatterImage ? (
                     <img
                         src={chatterImage}
                         alt=""
-                        style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }}
+                        className="chat-header-avatar"
                     />
+                ) : (
+                    <LetterAvatar name={chatterName} className="small" />
                 )}
-                <h2><Link to={`/profile/${chatterId}`} >{chatterName}</Link></h2>
+                <h2 style={{ margin: 0, fontSize: '1.1rem' }}>
+                    <Link to={`/profile/${chatterId}`} style={{ textDecoration: 'none', color: '#1a1a1a' }}>
+                        {chatterName}
+                    </Link>
+                </h2>
                 <button
                     onClick={() => {
                         setIsSelectionMode(!isSelectionMode);

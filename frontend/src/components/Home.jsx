@@ -3,6 +3,7 @@ import blogchit from '../assets/blogchit.png';
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios'
 import Navbar from "./Navbar";
+import './home.css'
 import { io } from 'socket.io-client';
 const socket = io(import.meta.env.VITE_SOCKET_URL);
 const API_URL = import.meta.env.VITE_API_URL;
@@ -107,7 +108,7 @@ function Home() {
 
     return (
         <>
-            <div>
+            <div className="main">
          
                 <img src={blogchit} style={{marginRight:"15vw" ,marginLeft:"15vw" , width:"70vw" , height:"auto" , marginTop:"23px"}} alt="" className="logo" />
 
