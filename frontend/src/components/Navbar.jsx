@@ -94,11 +94,11 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
             </Link>
             <div className="navbar-actions">
                 <Link to="/notti" className="nav-action-btn">
-                    🔔
+                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                     {unreadCount > 0 && <span className="nav-badge">{unreadCount}</span>}
                 </Link>
                 <Link to="/write" className="nav-action-btn">
-                    ✍️
+                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 </Link>
             </div>
         </div>
@@ -107,7 +107,10 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
         <div className="desktop-navbar main" style={{ display: "flex", justifyContent: "space-around" }}>
             <div style={{ position: "relative", display: "inline-block" }}>
                 <button style={{ position: "relative", padding: "10px", background: "#f0f0f0", border: "none", borderRadius: "5px", cursor: "pointer" }}>
-                   <Link to={"/notti"}> 🔔 Notifications {unreadCount > 0 && <span style={{ position: "absolute", top: "-5px", right: "-5px", background: "red", color: "white", borderRadius: "50%", padding: "2px 6px", fontSize: "10px" }}>{unreadCount}</span>}</Link>
+                   <Link to={"/notti"} style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "inherit" }}>
+                       <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                       Notifications {unreadCount > 0 && <span style={{ position: "absolute", top: "-5px", right: "-5px", background: "red", color: "white", borderRadius: "50%", padding: "2px 6px", fontSize: "10px" }}>{unreadCount}</span>}
+                   </Link>
                 </button>
 
             </div>
@@ -116,17 +119,30 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
                 <div><Link to={"/admin"}> admin</Link></div>
             )}
 
-                        <Link to={"/profile"}>profile</Link>
-            <Link to={"/search"}>search</Link>
-            <Link to={"/communities"}>Communities</Link>
-            <Link to={"/write"}>✍️ write blog</Link>
+            <Link to={"/profile"} style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "inherit" }}>
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                profile
+            </Link>
+            <Link to={"/search"} style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "inherit" }}>
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                search
+            </Link>
+            <Link to={"/communities"} style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "inherit" }}>
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                Communities
+            </Link>
+            <Link to={"/write"} style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "inherit" }}>
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                write blog
+            </Link>
             <div style={{ position: "relative", display: "inline-block" }}>
                 <Link to={"/messages"} onClick={() => { 
                     setUnreadMsgCount(0); 
                     setUnreadChatters([]); 
                     axios.post(`${API_URL}/clearunread`, { userId }).catch(err => console.error(err));
-                }} style={{ position: "relative", textDecoration: "none", color: "inherit" }}>
-                    💬 messages
+                }} style={{ position: "relative", textDecoration: "none", color: "inherit", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    messages
                     {unreadMsgCount > 0 && (
                         <span style={{
                             position: "absolute",

@@ -33,7 +33,9 @@ function Footer({ unreadMsgCount, setUnreadMsgCount, unreadChatters, setUnreadCh
         <nav className="mobile-bottom-footer">
             {/* Home */}
             <Link to="/" className={`footer-nav-item ${isActive("/") ? "active" : ""}`}>
-                <span className="footer-nav-icon">🏠</span>
+                <span className="footer-nav-icon">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                </span>
                 <span className="footer-nav-label">Home</span>
             </Link>
 
@@ -43,14 +45,18 @@ function Footer({ unreadMsgCount, setUnreadMsgCount, unreadChatters, setUnreadCh
                 className={`footer-nav-item ${isActive("/messages") ? "active" : ""}`}
                 onClick={handleMessagesClick}
             >
-                <span className="footer-nav-icon">💬</span>
+                <span className="footer-nav-icon">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                </span>
                 {unreadMsgCount > 0 && <span className="footer-badge">{unreadMsgCount}</span>}
                 <span className="footer-nav-label">Messages</span>
             </Link>
 
             {/* Search */}
             <Link to="/search" className={`footer-nav-item ${isActive("/search") ? "active" : ""}`}>
-                <span className="footer-nav-icon">🔍</span>
+                <span className="footer-nav-icon">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </span>
                 <span className="footer-nav-label">Search</span>
             </Link>
 

@@ -211,7 +211,7 @@
 @media (max-width: 1023px) {
   :root {
     --mobile-nav-height: 56px;
-    --mobile-footer-height: 62px;
+    --mobile-footer-height: 54px;
   }
 
   .mobile-bottom-footer {
@@ -223,12 +223,14 @@
     left: 0;
     right: 0;
     z-index: 1000;
-    background: #ffffff;
-    border-top: 1px solid #e8e8e8;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(0, 0, 0, 0.04);
     padding: 6px 0 env(safe-area-inset-bottom, 6px);
     height: var(--mobile-footer-height);
     box-sizing: border-box;
-    box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.03);
   }
 
   .mobile-bottom-footer .footer-nav-item {
@@ -254,8 +256,15 @@
   }
 
   .mobile-bottom-footer .footer-nav-icon {
-    font-size: 22px;
-    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-bottom-footer .footer-nav-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 1.5px;
   }
 
   .mobile-bottom-footer .footer-nav-label {
