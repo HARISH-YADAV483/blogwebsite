@@ -87,6 +87,7 @@ function Messages({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) 
     return (
         <div className="messages-sidebar-content" >
             <p className="headoo">Your Conversations</p>
+            <p style={{color:"grey" ,marginBottom:"9px"}}>Stay Connected and keep the convo going</p>
  
             {/* Tab Switcher */}
             <div className="messages-tab-switcher">
@@ -160,6 +161,12 @@ function Messages({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) 
                                             <span className="chatter-name">
                                                 {chatter.name}
                                             </span>
+                                            {chatter.latestMessage && (
+                                                <span className="chatter-last-msg">
+                                                    {chatter.latestMessage.split(/\s+/).slice(0, 4).join(" ")}
+                                                    {chatter.latestMessage.split(/\s+/).length > 4 ? " ..." : ""}
+                                                </span>
+                                            )}
                                         </div>
 
                                         {/* Unread count badge */}

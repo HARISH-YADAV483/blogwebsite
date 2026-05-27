@@ -1348,7 +1348,8 @@ app.get("/chatters/:userId", async (req, res) => {
             
             return {
                 ...chatter.toObject(),
-                latestMessageTime: latestMsg ? latestMsg.time : new Date(0)
+                latestMessageTime: latestMsg ? latestMsg.time : new Date(0),
+                latestMessage: latestMsg ? latestMsg.message : ""
             };
         }));
         
