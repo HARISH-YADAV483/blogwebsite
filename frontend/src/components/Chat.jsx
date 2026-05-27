@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { io } from 'socket.io-client';
+import "./chat.css"
 
 const API_URL = import.meta.env.VITE_API_URL;
 const socket = io(import.meta.env.VITE_SOCKET_URL);
@@ -332,7 +333,7 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                         marginLeft: "auto",
                         marginRight: "10px",
                         padding: "5px 12px",
-                        backgroundColor: isSelectionMode ? "#6c757d" : "#007bff",
+                        backgroundColor: isSelectionMode ? "#6c757d" : "#ff6a00ff",
                         color: "white",
                         border: "none",
                         borderRadius: "4px",
@@ -346,7 +347,7 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                 </button>
             </div>
 
-            <div
+            <div className="chatt"
                 ref={chatContainerRef}
                 onScroll={handleScroll}
                 style={{
@@ -354,6 +355,7 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
                     padding: "20px",
                     overflowY: "auto",
                     backgroundColor: "transparent"
+
                 }}>
                 {loading ? (
                     <p>Loading messages...</p>

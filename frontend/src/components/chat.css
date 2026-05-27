@@ -1,0 +1,12 @@
+.chatt{
+    
+   
+    background: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 40px,
+        rgba(241, 111, 4, 0.095) 40px,
+        rgba(243, 114, 8, 0.095) 41px
+    );
+    z-index: 0;
+}

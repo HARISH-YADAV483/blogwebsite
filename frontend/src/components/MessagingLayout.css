@@ -121,12 +121,29 @@
     overflow-y: auto;
 }
 
-.messages-sidebar-content h1 {
-    margin: 0 0 18px 0;
-    font-size: 1.6rem;
+.messages-sidebar-content .headoo {
+    margin: 0 0 20px 0;
+    font-size: clamp(1.4rem, 3vw, 1.8rem);
     font-weight: 800;
-    color: #1a1a1a;
+    background: linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     letter-spacing: -0.5px;
+    position: relative;
+    padding-bottom: 10px;
+    display: inline-block;
+}
+
+.messages-sidebar-content .headoo::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 35px;
+    height: 4px;
+    background: linear-gradient(135deg, #df860a, #f5a623);
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(223, 134, 10, 0.3);
 }
 
 /* --- Chatter card --- */
@@ -348,7 +365,7 @@
         padding: 16px;
     }
 
-    .messages-sidebar-content h1 {
+    .messages-sidebar-content .headoo {
         font-size: 1.4rem;
         margin-bottom: 14px;
     }
@@ -360,7 +377,7 @@
         padding: 12px;
     }
 
-    .messages-sidebar-content h1 {
+    .messages-sidebar-content .headoo {
         font-size: 1.25rem;
         margin-bottom: 12px;
     }

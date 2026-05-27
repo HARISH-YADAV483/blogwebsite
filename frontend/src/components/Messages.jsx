@@ -86,8 +86,8 @@ function Messages({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) 
 
     return (
         <div className="messages-sidebar-content">
-            <h1>Messages</h1>
-
+            <p className="headoo">Your Conversations</p>
+ 
             {/* Tab Switcher */}
             <div className="messages-tab-switcher">
                 <button
