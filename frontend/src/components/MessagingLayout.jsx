@@ -11,7 +11,7 @@ function MessagingLayout({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCo
                         location.pathname.startsWith('/communiy/');
 
     return (
-        <div className="messaging-layout-container">
+        <div className="messaging-layout-container" style={{ backgroundColor:" rgb(254, 250, 243) !important"}} >
             {/* Animated Background from blogchit theme */}
             <div className="styleo-bg-pattern"></div>
             <div className="styleo-orb styleo-orb-1"></div>

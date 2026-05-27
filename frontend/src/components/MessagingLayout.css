@@ -44,7 +44,7 @@
     /* Desktop: subtract the navbar (approx 45px including border/hr) */
     height: calc(100vh - 45px);
     width: 100%;
-    background: #fafafa;
+background-color : rgb(254, 250, 243) !important;
     overflow: hidden;
     position: relative;
 }
