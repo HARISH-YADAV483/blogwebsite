@@ -33,14 +33,15 @@ function App() {
     location.pathname === "/register" || 
     location.pathname === "/forgotpass";
   
-  // Hide navbar on mobile for: messages, chat, communities, community chat
+  // Hide navbar on mobile for: messages, chat, communities, community chat, search
   const hideNavbarMobile = 
     location.pathname === "/messages" ||
     location.pathname.startsWith("/chat/") || 
     location.pathname === "/communities" ||
     location.pathname.startsWith("/communities/") || 
     location.pathname.startsWith("/communiy/") || 
-    location.pathname.startsWith("/community/");
+    location.pathname.startsWith("/community/") ||
+    location.pathname === "/search";
 
   // Hide footer on mobile for: chat and community chat only
   const hideFooterMobile = 

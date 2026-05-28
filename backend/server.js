@@ -17,7 +17,7 @@ const { Server } = require('socket.io');
 const app = express();
 app.use(cors({
 
-  origin: process.env.FRONTEND_URL
+    origin: process.env.FRONTEND_URL
 
 }));
 app.use(express.json());
@@ -37,13 +37,13 @@ const UserSchema = new mongoose.Schema({
     follower: Array,
     following: Array,
     image: String,
-    chatters:Array,
+    chatters: Array,
     unreadChatters: Array,
     communities: Array,
     savedblogs: Array,
     bio: String,
     dob: String,
-    name:String,
+    name: String,
     phone: String,
     bc: Number
 });
@@ -79,7 +79,7 @@ const NotificationSchema = new mongoose.Schema({
     senderId: mongoose.Schema.Types.ObjectId,
     senderName: String,
     message: String,
-    
+
     blogId: mongoose.Schema.Types.ObjectId,
     time: { type: Date, default: Date.now },
     isRead: { type: Boolean, default: false }
@@ -113,7 +113,7 @@ const CommunitySchema = new mongoose.Schema({
     type: String,
     members: Array,
     requests: Array,
-    desc:String,
+    desc: String,
     image: String,
     createdAt: { type: Date, default: Date.now }
 });
@@ -150,7 +150,7 @@ const server = http.createServer(app);
 // Initialize Socket.io with CORS enabled for your frontend
 const io = new Server(server, {
     cors: {
-        origin: process.env.FRONTEND_URL, 
+        origin: process.env.FRONTEND_URL,
         methods: ["GET", "POST"]
     }
 });
@@ -177,7 +177,7 @@ io.on('connection', (socket) => {
         const chatroom = [message.senderId.toString(), message.receiverId.toString()].sort().join("_");
         const roomSockets = io.sockets.adapter.rooms.get(chatroom);
         let receiverInChat = false;
-        
+
         if (roomSockets) {
             for (const socketId of roomSockets) {
                 const s = io.sockets.sockets.get(socketId);
@@ -194,7 +194,7 @@ io.on('connection', (socket) => {
 
             // Update receiver's unreadChatters in the database
             try {
-               await User.findByIdAndUpdate(message.receiverId, {
+                await User.findByIdAndUpdate(message.receiverId, {
                     $addToSet: { unreadChatters: message.senderId }
                 });
             } catch (err) {
@@ -395,13 +395,13 @@ app.post("/verifyotp", (req, res) => {
 
 //registration
 app.post("/regi", async (req, res) => {
-    const { name, pass, email, image , dob, bio , username} = req.body;
+    const { name, pass, email, image, dob, bio, username } = req.body;
     const exist = await User.findOne({ username });
     if (exist) {
         res.json({ message: "username already exist " })
     }
     else {
-        const newUser = new User({ username, pass, email, role: "user", image , bio , dob, name  });
+        const newUser = new User({ username, pass, email, role: "user", image, bio, dob, name });
         await newUser.save();
         res.json({
             message: "registration successful....",
@@ -413,12 +413,12 @@ app.post("/regi", async (req, res) => {
 //login
 app.post("/logi", async (req, res) => {
     const { name, pass } = req.body;
-   const exist = await User.findOne({
-  $or: [
-    { username: name },
-    { email: name }
-  ]
-});
+    const exist = await User.findOne({
+        $or: [
+            { username: name },
+            { email: name }
+        ]
+    });
     if (!exist) {
         res.json({ message: "  such username doesnt exist   " })
     }
@@ -491,27 +491,27 @@ app.get("/verified", async (req, res) => {
 //verify
 app.post("/verify", async (req, res) => {
     try {
-        const { id , comment} = req.body;
+        const { id, comment } = req.body;
         const blog = await Blog.findById(id);
         blog.status = "verified";
         await blog.save();
         const authorId = blog.authorId;
-         const notification = new Notification({
-                receiverId: authorId,
-             
-                senderName: "ADMIN",
-                message: `ADMIN  verified your blog: "${blog.title}" because "${comment}"`,
-                blogId: blog._id
-            });
-            await notification.save();
+        const notification = new Notification({
+            receiverId: authorId,
 
-            // Emit via Socket.io
-            io.to(authorId.toString()).emit('receive_notification', {
-                message: notification.message,
-                time: notification.time,
-                
-                blogId: blog._id
-            });
+            senderName: "ADMIN",
+            message: `ADMIN  verified your blog: "${blog.title}" because "${comment}"`,
+            blogId: blog._id
+        });
+        await notification.save();
+
+        // Emit via Socket.io
+        io.to(authorId.toString()).emit('receive_notification', {
+            message: notification.message,
+            time: notification.time,
+
+            blogId: blog._id
+        });
 
         res.json({ message: "one blog verified succesfully " });
     }
@@ -523,28 +523,28 @@ app.post("/verify", async (req, res) => {
 //reject
 app.post("/reject", async (req, res) => {
     try {
-        const { id , comment } = req.body;
+        const { id, comment } = req.body;
         const blog = await Blog.findById(id);
         blog.status = "rejected";
         await blog.save();
         const authorId = blog.authorId;
 
-         const notification = new Notification({
-                receiverId: authorId,
-             
-                senderName: "ADMIN",
-                message: `ADMIN  rejected  your blog: "${blog.title}" because "${comment}"`,
-                blogId: blog._id
-            });
-            await notification.save();
+        const notification = new Notification({
+            receiverId: authorId,
 
-            // Emit via Socket.io
-            io.to(authorId.toString()).emit('receive_notification', {
-                message: notification.message,
-                time: notification.time,
-                
-                blogId: blog._id
-            });
+            senderName: "ADMIN",
+            message: `ADMIN  rejected  your blog: "${blog.title}" because "${comment}"`,
+            blogId: blog._id
+        });
+        await notification.save();
+
+        // Emit via Socket.io
+        io.to(authorId.toString()).emit('receive_notification', {
+            message: notification.message,
+            time: notification.time,
+
+            blogId: blog._id
+        });
         res.json({ message: "one blog rejected succesfully " });
     }
     catch (error) {
@@ -558,7 +558,7 @@ app.post("/like", async (req, res) => {
         const { id, userId } = req.body;
 
         const blog = await Blog.findById(id);
-        const authorid = blog.authorId ;
+        const authorid = blog.authorId;
         const writer = await User.findById(authorid);
         if (!blog) {
             return res.status(404).json({
@@ -581,7 +581,7 @@ app.post("/like", async (req, res) => {
 
             blog.likes = Math.max((blog.likes || 0) - 1, 0);
             writer.bc = Math.max((writer.bc || 0) - 0.5, 0);
-            
+
 
             await user.save();
             await blog.save();
@@ -656,27 +656,27 @@ app.post("/save", async (req, res) => {
 
         // If already saved → do nothing
         if (user.savedblogs.includes(id)) {
-           
+
 
             return res.json({
                 message: "saved successfully",
-                
+
             });
         }
 
         // If not liked → like
         user.savedblogs.push(id);
-      
+
 
         await user.save();
-  
 
-       
-       
+
+
+
 
         res.json({
             message: "saved successfully",
-          
+
         });
 
     } catch (error) {
@@ -704,21 +704,21 @@ app.post("/comments", async (req, res) => {
         // Push userId to commentors if not already present
         if (!blog.commentors.some(cId => cId.toString() === userId.toString())) {
             blog.commentors.push(userId);
-            writer.bc = (writer.bc || 0) + 1 ;
+            writer.bc = (writer.bc || 0) + 1;
 
         }
-await writer.save();
+        await writer.save();
         await user.save();
         await blog.save();
 
- const authorId = blog.authorId;
+        const authorId = blog.authorId;
         if (authorId && authorId.toString() !== userId.toString()) {
             const notification = new Notification({
                 receiverId: authorId,
                 senderId: userId,
                 senderName: user.name,
                 message: `${user.name} commented on  your blog: " ${comment} ${blog.title}"`,
-                
+
                 blogId: blog._id
             });
             await notification.save();
@@ -726,7 +726,7 @@ await writer.save();
             // Emit via Socket.io
             io.to(authorId.toString()).emit('receive_notification', {
                 message: notification.message,
-               
+
                 time: notification.time,
                 senderName: user.name,
                 blogId: blog._id
@@ -749,8 +749,8 @@ app.post("/shareblog", async (req, res) => {
     try {
         const { blogId, userId } = req.body;
         const blog = await Blog.findById(blogId);
-        const writerid =  blog.authorId;
-        const writer  = await User.findById(writerid);
+        const writerid = blog.authorId;
+        const writer = await User.findById(writerid);
 
         if (!blog) {
             return res.status(404).json({ message: "Blog not found" });
@@ -759,10 +759,10 @@ app.post("/shareblog", async (req, res) => {
         // Push userId to sharers if not already present
         if (!blog.sharers.some(sId => sId.toString() === userId.toString())) {
             blog.sharers.push(userId);
-            writer.bc = (writer.bc || 0) + 1 ;
+            writer.bc = (writer.bc || 0) + 1;
             await writer.save();
             await blog.save();
-            
+
         }
 
         res.json({ message: "Sharer tracked successfully" });
@@ -798,7 +798,7 @@ app.get("/blogs/:id", async (req, res) => {
                 blogView = new BlogView({ blogId: id, userId, count: 1 });
                 await blogView.save();
                 blog.views = (blog.views || 0) + 1;
-                writer.bc = (writer.bc || 0) + 0.1 ;
+                writer.bc = (writer.bc || 0) + 0.1;
                 await writer.save();
 
                 await blog.save();
@@ -806,7 +806,7 @@ app.get("/blogs/:id", async (req, res) => {
                 blogView.count += 1;
                 await blogView.save();
                 blog.views = (blog.views || 0) + 1;
-                writer.bc = (writer.bc || 0) + 0.1 ;
+                writer.bc = (writer.bc || 0) + 0.1;
                 await writer.save();
                 await blog.save();
             }
@@ -856,7 +856,7 @@ app.post("/getprofile", async (req, res) => {
         const commented = await Blog.find({ _id: { $in: commentedIds } }, '_id title');
         const saved = await Blog.find({ _id: { $in: savedIds } }, '_id title');
         const image = user.image || "";
-        
+
         const chatterIds = user.chatters || [];
         const chatters = await User.find({ _id: { $in: chatterIds } }, '_id name image');
         // Resolve follower/following IDs to {_id, name} objects
@@ -991,11 +991,11 @@ app.post("/send-forgot-otp", async (req, res) => {
         }
 
         const user = await User.findOne({
-  $or: [
-    { name: namee },
-    { email: namee }
-  ]
-});
+            $or: [
+                { name: namee },
+                { email: namee }
+            ]
+        });
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
@@ -1130,9 +1130,9 @@ app.post("/searchprofile", async (req, res) => {
         const blogs = await Blog.find({ author: profileName });
         const veriblogs = blogs.filter(blog => blog.status === "verified");
         const image = user.image || "";
-        const bc  = user.bc || "0";
+        const bc = user.bc || "0";
         const bio = user.bio || "blogCHIT user";
-        const name = user.name ;
+        const name = user.name;
 
         // Check if current user is following this profile
         let isfollowing = false;
@@ -1157,7 +1157,7 @@ app.post("/searchprofile", async (req, res) => {
             followers: followerUsers,
             following: followingUsers,
             bc,
-            bio, 
+            bio,
             name
         });
 
@@ -1239,7 +1239,7 @@ app.post("/unfollow", async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-       
+
         targetUser.follower = targetUser.follower.filter(
             fId => fId.toString() !== userId
         );
@@ -1263,25 +1263,25 @@ app.post("/unfollow", async (req, res) => {
 });
 
 app.get("/notifications/:userId", async (req, res) => {
-  try {
-    const { userId } = req.params;
+    try {
+        const { userId } = req.params;
 
-    const notifications = await Notification.find({
-      receiverId: userId,
-      isRead: false
-    }).sort({ time: -1 });
+        const notifications = await Notification.find({
+            receiverId: userId,
+            isRead: false
+        }).sort({ time: -1 });
 
-    res.json(notifications || []);
-  } catch (error) {
-    res.status(500).json({
-      message: error.message
-    });
-  }
+        res.json(notifications || []);
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
 });
 app.get("/oldnotifications/:userId", async (req, res) => {
     try {
         const { userId } = req.params;
-        const notifications = await Notification.find({ receiverId: userId }).sort({ time: -1 }) || [] ;
+        const notifications = await Notification.find({ receiverId: userId }).sort({ time: -1 }) || [];
         res.json(notifications);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -1335,7 +1335,7 @@ app.get("/chatters/:userId", async (req, res) => {
 
         const chatterIds = user.chatters || [];
         const chatters = await User.find({ _id: { $in: chatterIds } }, '_id name image');
-        
+
         // Find latest message for each chatter
         const chattersWithLatest = await Promise.all(chatters.map(async (chatter) => {
             const latestMsg = await Message.findOne({
@@ -1345,16 +1345,16 @@ app.get("/chatters/:userId", async (req, res) => {
                 ],
                 deletedBy: { $ne: new mongoose.Types.ObjectId(userId) }
             }).sort({ time: -1 });
-            
+
             return {
                 ...chatter.toObject(),
                 latestMessageTime: latestMsg ? latestMsg.time : new Date(0),
                 latestMessage: latestMsg ? latestMsg.message : ""
             };
         }));
-        
+
         chattersWithLatest.sort((a, b) => new Date(b.latestMessageTime) - new Date(a.latestMessageTime));
-        
+
         res.json(chattersWithLatest);
     } catch (error) {
         console.error(error);
@@ -1364,177 +1364,177 @@ app.get("/chatters/:userId", async (req, res) => {
 app.post("/read", async (req, res) => {
     try {
         const { id } = req.body;
-        const notification = await Notification.findById(id) ;
-        if(!notification){
-            res.json({message : "noti not found"})
+        const notification = await Notification.findById(id);
+        if (!notification) {
+            res.json({ message: "noti not found" })
         }
-        notification.isRead = !notification.isRead ;
+        notification.isRead = !notification.isRead;
         notification.save();
         res.json({
-            message : "noti deleted successfully"
+            message: "noti deleted successfully"
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
 app.post("/search", async (req, res) => {
-  try {
-    const { search } = req.body;
+    try {
+        const { search } = req.body;
 
-    
-    if (!search || search.trim() === "") {
-      return res.json({
-        message: "Search input is required"
-      });
+
+        if (!search || search.trim() === "") {
+            return res.json({
+                message: "Search input is required"
+            });
+        }
+
+        const userlist = await User.find({
+            username: {
+                $regex: search,
+                $options: "i" // case-insensitive
+            }
+        });
+
+        res.json(userlist);
+
+    } catch (error) {
+        res.json({
+            message: "error 500"
+        });
     }
-
-    const userlist = await User.find({
-     username: {
-        $regex: search,
-        $options: "i" // case-insensitive
-      }
-    });
-
-    res.json(userlist);
-
-  } catch (error) {
-    res.json({
-      message: "error 500"
-    });
-  }
 });
 
 // Get messages between two users
 app.get("/messages/:userId/:chatterId", async (req, res) => {
-  try {
-    const { userId, chatterId } = req.params;
-    const skip = parseInt(req.query.skip) || 0;
-    const limit = parseInt(req.query.limit) || 20;
+    try {
+        const { userId, chatterId } = req.params;
+        const skip = parseInt(req.query.skip) || 0;
+        const limit = parseInt(req.query.limit) || 20;
 
-    const messages = await Message.find({
-      $or: [
-        { senderId: userId, receiverId: chatterId },
-        { senderId: chatterId, receiverId: userId }
-      ],
-      deletedBy: { $ne: new mongoose.Types.ObjectId(userId) }
-    })
-    .sort({ time: -1 })
-    .skip(skip)
-    .limit(limit);
+        const messages = await Message.find({
+            $or: [
+                { senderId: userId, receiverId: chatterId },
+                { senderId: chatterId, receiverId: userId }
+            ],
+            deletedBy: { $ne: new mongoose.Types.ObjectId(userId) }
+        })
+            .sort({ time: -1 })
+            .skip(skip)
+            .limit(limit);
 
-    res.json(messages.reverse());
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+        res.json(messages.reverse());
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 });
 
 // Delete personal messages
 app.post("/messages/delete", async (req, res) => {
-  try {
-    const { messageIds, userId, type, chatroom } = req.body;
-    if (!messageIds || !userId || !type) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
+    try {
+        const { messageIds, userId, type, chatroom } = req.body;
+        if (!messageIds || !userId || !type) {
+            return res.status(400).json({ success: false, message: "Missing required fields" });
+        }
+
+        if (type === "for_me") {
+            await Message.updateMany(
+                { _id: { $in: messageIds } },
+                { $addToSet: { deletedBy: new mongoose.Types.ObjectId(userId) } }
+            );
+            return res.json({ success: true, message: "Messages deleted for you" });
+        } else if (type === "permanently") {
+            const messagesToDelete = await Message.find({ _id: { $in: messageIds }, senderId: userId });
+            const deletedDocs = messagesToDelete.map(msg => ({
+                originalId: msg._id,
+                senderId: msg.senderId,
+                receiverId: msg.receiverId,
+                message: msg.message,
+                time: msg.time,
+                deletedByType: "permanently"
+            }));
+            if (deletedDocs.length > 0) {
+                await DeletedMessage.insertMany(deletedDocs);
+            }
+
+            await Message.deleteMany({ _id: { $in: messageIds }, senderId: userId });
+
+            // Emit socket event to both users in the room
+            if (chatroom) {
+                io.to(chatroom).emit("messages_deleted", { messageIds });
+            }
+
+            return res.json({ success: true, message: "Messages deleted permanently" });
+        }
+
+        res.status(400).json({ success: false, message: "Invalid delete type" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
-
-    if (type === "for_me") {
-      await Message.updateMany(
-        { _id: { $in: messageIds } },
-        { $addToSet: { deletedBy: new mongoose.Types.ObjectId(userId) } }
-      );
-      return res.json({ success: true, message: "Messages deleted for you" });
-    } else if (type === "permanently") {
-      const messagesToDelete = await Message.find({ _id: { $in: messageIds }, senderId: userId });
-      const deletedDocs = messagesToDelete.map(msg => ({
-        originalId: msg._id,
-        senderId: msg.senderId,
-        receiverId: msg.receiverId,
-        message: msg.message,
-        time: msg.time,
-        deletedByType: "permanently"
-      }));
-      if (deletedDocs.length > 0) {
-        await DeletedMessage.insertMany(deletedDocs);
-      }
-
-      await Message.deleteMany({ _id: { $in: messageIds }, senderId: userId });
-
-      // Emit socket event to both users in the room
-      if (chatroom) {
-        io.to(chatroom).emit("messages_deleted", { messageIds });
-      }
-
-      return res.json({ success: true, message: "Messages deleted permanently" });
-    }
-
-    res.status(400).json({ success: false, message: "Invalid delete type" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
 });
 
 // Send message
 app.post("/sendmessage", async (req, res) => {
-  try {
-    const { senderId, receiverId, message } = req.body;
-    const newMessage = new Message({ senderId, receiverId, message, isRead: false });
-    await newMessage.save();
-    res.json(newMessage);
-    
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+    try {
+        const { senderId, receiverId, message } = req.body;
+        const newMessage = new Message({ senderId, receiverId, message, isRead: false });
+        await newMessage.save();
+        res.json(newMessage);
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 });
 
 // Mark all messages from a sender as read for a receiver
 app.post("/markread", async (req, res) => {
-  try {
-    const { userId, chatterId } = req.body;
-    await Message.updateMany(
-      { senderId: chatterId, receiverId: userId, isRead: false },
-      { $set: { isRead: true } }
-    );
-    res.json({ message: "Messages marked as read" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+    try {
+        const { userId, chatterId } = req.body;
+        await Message.updateMany(
+            { senderId: chatterId, receiverId: userId, isRead: false },
+            { $set: { isRead: true } }
+        );
+        res.json({ message: "Messages marked as read" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 });
 
 // Get unread message counts grouped by sender
 app.get("/unreadcounts/:userId", async (req, res) => {
-  try {
-    const { userId } = req.params;
-    
-    // Get unique senders from Messages
-    const counts = await Message.aggregate([
-      { $match: { receiverId: new mongoose.Types.ObjectId(userId), isRead: false } },
-      { $group: { _id: "$senderId", count: { $sum: 1 } } }
-    ]);
-    
-    const perChatter = {};
-    counts.forEach(c => { perChatter[c._id.toString()] = c.count; });
-    
-    // Get unreadChatters from User document
-    const user = await User.findById(userId);
-    const unreadChatters = user?.unreadChatters || [];
-    
-    res.json({ 
-      total: counts.length, // Unique chatters count
-      perChatter,
-      unreadChatters
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+    try {
+        const { userId } = req.params;
+
+        // Get unique senders from Messages
+        const counts = await Message.aggregate([
+            { $match: { receiverId: new mongoose.Types.ObjectId(userId), isRead: false } },
+            { $group: { _id: "$senderId", count: { $sum: 1 } } }
+        ]);
+
+        const perChatter = {};
+        counts.forEach(c => { perChatter[c._id.toString()] = c.count; });
+
+        // Get unreadChatters from User document
+        const user = await User.findById(userId);
+        const unreadChatters = user?.unreadChatters || [];
+
+        res.json({
+            total: counts.length, // Unique chatters count
+            perChatter,
+            unreadChatters
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 });
 
 app.post("/clearunread", async (req, res) => {
-  try {
-    const { userId } = req.body;
-    await User.findByIdAndUpdate(userId, { $set: { unreadChatters: [] } });
-    res.json({ message: "Unread chatters cleared" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+    try {
+        const { userId } = req.body;
+        await User.findByIdAndUpdate(userId, { $set: { unreadChatters: [] } });
+        res.json({ message: "Unread chatters cleared" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 });
 
 // --- COMMUNITIES API ---
@@ -1551,7 +1551,7 @@ app.post("/community/create", async (req, res) => {
             image
         });
         await newCommunity.save();
-        
+
         await User.updateMany(
             { _id: { $in: newCommunity.members } },
             { $addToSet: { communities: newCommunity._id } }
@@ -1721,7 +1721,7 @@ app.post("/community/remove_member", async (req, res) => {
         await community.save();
 
         await User.findByIdAndUpdate(memberId, { $pull: { communities: communityId } });
-        
+
         res.json({ success: true, message: "Member removed" });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -1752,44 +1752,44 @@ app.get("/community/:communityId/messages", async (req, res) => {
 
 // Delete community messages
 app.post("/community/messages/delete", async (req, res) => {
-  try {
-    const { messageIds, userId, type, communityId } = req.body;
-    if (!messageIds || !userId || !type || !communityId) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
+    try {
+        const { messageIds, userId, type, communityId } = req.body;
+        if (!messageIds || !userId || !type || !communityId) {
+            return res.status(400).json({ success: false, message: "Missing required fields" });
+        }
+
+        if (type === "for_me") {
+            await CommunityMessage.updateMany(
+                { _id: { $in: messageIds } },
+                { $addToSet: { deletedBy: new mongoose.Types.ObjectId(userId) } }
+            );
+            return res.json({ success: true, message: "Messages deleted for you" });
+        } else if (type === "permanently") {
+            const messagesToDelete = await CommunityMessage.find({ _id: { $in: messageIds }, senderId: userId });
+            const deletedDocs = messagesToDelete.map(msg => ({
+                originalId: msg._id,
+                communityId: msg.communityId,
+                senderId: msg.senderId,
+                message: msg.message,
+                time: msg.time,
+                deletedByType: "permanently"
+            }));
+            if (deletedDocs.length > 0) {
+                await DeletedCommunityMessage.insertMany(deletedDocs);
+            }
+
+            await CommunityMessage.deleteMany({ _id: { $in: messageIds }, senderId: userId });
+
+            // Emit socket event to the community room
+            io.to(communityId).emit("community_messages_deleted", { communityId, messageIds });
+
+            return res.json({ success: true, message: "Messages deleted permanently" });
+        }
+
+        res.status(400).json({ success: false, message: "Invalid delete type" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
-
-    if (type === "for_me") {
-      await CommunityMessage.updateMany(
-        { _id: { $in: messageIds } },
-        { $addToSet: { deletedBy: new mongoose.Types.ObjectId(userId) } }
-      );
-      return res.json({ success: true, message: "Messages deleted for you" });
-    } else if (type === "permanently") {
-      const messagesToDelete = await CommunityMessage.find({ _id: { $in: messageIds }, senderId: userId });
-      const deletedDocs = messagesToDelete.map(msg => ({
-        originalId: msg._id,
-        communityId: msg.communityId,
-        senderId: msg.senderId,
-        message: msg.message,
-        time: msg.time,
-        deletedByType: "permanently"
-      }));
-      if (deletedDocs.length > 0) {
-        await DeletedCommunityMessage.insertMany(deletedDocs);
-      }
-
-      await CommunityMessage.deleteMany({ _id: { $in: messageIds }, senderId: userId });
-
-      // Emit socket event to the community room
-      io.to(communityId).emit("community_messages_deleted", { communityId, messageIds });
-
-      return res.json({ success: true, message: "Messages deleted permanently" });
-    }
-
-    res.status(400).json({ success: false, message: "Invalid delete type" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
 });
 
 app.post("/community/:communityId/sendmessage", async (req, res) => {
@@ -1822,21 +1822,21 @@ app.get("/communitydetail/:id", async (req, res) => {
                 message: "community not found"
             });
         }
-    let name = community.name 
-    const creatorid = community.creatorId
-   const creator = await User.findById(creatorid).select("image name");
-        const desc = community.desc || "it is a public community" ;
+        let name = community.name
+        const creatorid = community.creatorId
+        const creator = await User.findById(creatorid).select("image name");
+        const desc = community.desc || "it is a public community";
         const members_id = community.members;
-       const members = await User.find({
-  _id: { $in: members_id }
-}).select("image name");
+        const members = await User.find({
+            _id: { $in: members_id }
+        }).select("image name");
 
- res.status(200).json({
-           name,
+        res.status(200).json({
+            name,
             creator,
             desc,
             members,
-            
+
         });
 
 

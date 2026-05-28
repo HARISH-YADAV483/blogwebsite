@@ -1,0 +1,197 @@
+.search-page-container {
+    min-height: calc(100vh - 60px);
+    background-color: #ffffff;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Background animated elements for premium feel */
+.search-page-container::before {
+    content: '';
+    position: fixed;
+    top: -100px;
+    left: -100px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(223, 134, 10, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+    border-radius: 50%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.search-page-container::after {
+    content: '';
+    position: fixed;
+    bottom: -100px;
+    right: -50px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+    border-radius: 50%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.search-input-wrapper {
+    width: 100%;
+    max-width: 600px;
+    position: relative;
+    margin-bottom: 24px;
+    z-index: 10;
+}
+
+.search-input {
+    width: 100%;
+    padding: 18px 24px 18px 54px;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+    font-size: 16px;
+    font-family: 'Inter', sans-serif;
+    color: #333;
+    outline: none;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.search-input:focus {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+    border-color: rgba(223, 134, 10, 0.4);
+}
+
+.search-input::placeholder {
+    color: #aaa;
+}
+
+.search-icon {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.search-results-container {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 10;
+}
+
+.search-user-card {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+}
+
+.search-user-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.search-user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    margin-right: 16px;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-user-avatar-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    margin-right: 16px;
+    background: linear-gradient(135deg, #df860a, #f5a623);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 600;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-user-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.search-user-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+.search-user-username {
+    font-size: 14px;
+    color: #777;
+}
+
+.search-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10vh;
+    opacity: 0.9;
+    z-index: 10;
+}
+
+.search-empty-state video {
+    width: 240px;
+    height: auto;
+    margin-bottom: 24px;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.05));
+}
+
+.search-empty-text {
+    font-size: 17px;
+    color: #666;
+    font-weight: 500;
+    text-align: center;
+}
+
+@media (max-width: 1023px) {
+    .search-page-container {
+        padding: 4px;
+        min-height: 100vh;
+    }
+
+    .search-input-wrapper {
+        margin-top: 8px;
+    }
+
+    .search-empty-state {
+        margin-top: 5vh;
+    }
+
+    .search-empty-state video {
+        width: 200px;
+    }
+}
