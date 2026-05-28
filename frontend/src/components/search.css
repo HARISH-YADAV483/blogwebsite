@@ -164,7 +164,7 @@
 }
 
 .search-empty-state video {
-    width: 240px;
+    width: 290px;
     height: auto;
     margin-bottom: 24px;
     filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.05));
@@ -192,6 +192,6 @@
     }
 
     .search-empty-state video {
-        width: 200px;
+        width:80vw;
     }
 }
