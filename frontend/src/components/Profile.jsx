@@ -654,7 +654,7 @@ function Profile() {
             </main>
 
             {/* Floating Write Button */}
-            <Link to="/writeblog" className="floating-write-btn">
+            <Link to="/write" className="floating-write-btn">
                 <Plus size={32} />
             </Link>
         </div>
