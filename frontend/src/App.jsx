@@ -19,6 +19,7 @@ import Login from "./components/Login";
 import Forget from "./components/Forgetpassword";
 import Writeblog from "./components/Writeblog";
 import MessagingLayout from "./components/MessagingLayout";
+import stickerImg from "./assets/sticker.png";
 
 function ProtectedAdminRoute({ children }) {
   const userData = JSON.parse(localStorage.getItem("user") || "{}");
@@ -41,7 +42,8 @@ function App() {
     location.pathname.startsWith("/communities/") || 
     location.pathname.startsWith("/communiy/") || 
     location.pathname.startsWith("/community/") ||
-    location.pathname === "/search";
+    location.pathname === "/search" ||
+    location.pathname === "/profile";
 
   // Hide footer on mobile for: chat and community chat only
   const hideFooterMobile = 
@@ -101,7 +103,9 @@ function App() {
         <Route element={<MessagingLayout unreadPerChatter={unreadPerChatter} setUnreadPerChatter={setUnreadPerChatter} setUnreadMsgCount={setUnreadMsgCount} />}>
           <Route path="/messages" element={
             <div className="empty-chat-placeholder hide-on-mobile">
-              <p>Select a chat or community to start messaging</p>
+              <img src={stickerImg} alt="Start a conversation" className="empty-chat-sticker" />
+              <h2 className="empty-chat-title">Start a Conversation!</h2>
+              <p className="empty-chat-subtitle">Pick a chat from the sidebar or find someone new to connect with ✨</p>
             </div>
           } />
           <Route path="/chat/:chatterId" element={<Chat unreadPerChatter={unreadPerChatter} setUnreadPerChatter={setUnreadPerChatter} setUnreadMsgCount={setUnreadMsgCount} />} />

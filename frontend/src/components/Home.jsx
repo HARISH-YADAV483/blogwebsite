@@ -108,7 +108,7 @@ function Home() {
 
     return (
         <>
-            <div className="main">
+            <div className="main" style={{paddingTop:"0px !important"}}>
          
                 <img src={blogchit} style={{marginRight:"15vw" ,marginLeft:"15vw" , width:"70vw" , height:"auto" , marginTop:"23px"}} alt="" className="logo" />
 

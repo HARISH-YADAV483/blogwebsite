@@ -6,10 +6,13 @@
             transparent 40px,
             rgba(241, 111, 4, 0.095) 40px,
             rgba(243, 114, 8, 0.095) 41px);
-    background-color: rgb(254, 250, 243) !important;
+    background-color: rgb(251, 251, 250) !important;
     z-index: 0;
 }
 body{
     padding-right: 0px !important;
     padding-left: 0px !important;
+}
+@media (min-width : 1024px) {
+    .colu{border-bottom:  0px !important;}
 }

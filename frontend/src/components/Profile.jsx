@@ -1,8 +1,22 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
 import { io } from 'socket.io-client';
+import { 
+    UserCircle, 
+    BarChart2, 
+    Archive as ArchiveIcon, 
+    Shield, 
+    LogOut, 
+    Menu, 
+    Plus,
+    X,
+    MessageSquare,
+    Heart,
+    Eye,
+    CheckCircle
+} from 'lucide-react';
+import './profile.css';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const socket = io(import.meta.env.VITE_SOCKET_URL);
@@ -23,18 +37,16 @@ function Profile() {
     const [following, setfollowing] = useState([]);
     const [showFollowers, setShowFollowers] = useState(false);
     const [showFollowing, setShowFollowing] = useState(false);
-    const [chatters , setchatters] = useState([]);
+    const [chatters, setchatters] = useState([]);
     const [selectedBlogId, setSelectedBlogId] = useState(null);
     const [selectedChatters, setSelectedChatters] = useState([]);
     const [saved, setSaved] = useState([]);
     const [dob, setdob] = useState("");
     const [bc, setbc] = useState("");
-    const [bio , setbio] = useState("");
-    const [email , setemail] = useState("");
-    const [phone , setphone] = useState("");
-    const [username , setusername] = useState("");
-    const [showpersonal , setshowpersonal] = useState(false);
-    const [showpass, setshowpass] = useState(false);
+    const [bio, setbio] = useState("");
+    const [email, setemail] = useState("");
+    const [phone, setphone] = useState("");
+    const [username, setusername] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [otp, setOtp] = useState("");
@@ -49,12 +61,16 @@ function Profile() {
         phone: ""
     });
 
+    // New layout states
+    const [activeTab, setActiveTab] = useState("blogs");
+    const [drawerOpen, setDrawerOpen] = useState(false);
+
     const getprofile = async () => {
         await axios.post(`${API_URL}/getprofile`, { username: currentUsername })
             .then(res => {
                 setblogcunt(res.data.blogcount);
                 setvericunt(res.data.vericount);
-                setBlogs(res.data.veriblogs);
+                setBlogs(res.data.veriblogs || []);
                 setlikes(res.data.liked || []);
                 setcommentblog(res.data.commented || []);
                 setimage(res.data.image);
@@ -70,9 +86,9 @@ function Profile() {
                 setusername(res.data.username || "");
                 setFormData({
                     username: res.data.username || "",
-                    dob: res.data.dob || "777",
+                    dob: res.data.dob || "",
                     bio: res.data.bio || "blogCHIT user",
-                    email: res.data.email || "fghj",
+                    email: res.data.email || "",
                     phone: res.data.phone || ""
                 });
             })
@@ -101,19 +117,16 @@ function Profile() {
             });
 
             if (res.data.success) {
-                // Update local states
                 setusername(formData.username);
                 setdob(formData.dob);
                 setbio(formData.bio);
                 setphone(formData.phone);
 
-                // Update localStorage so the new username is used across the app
                 const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
                 storedUser.username = formData.username;
                 localStorage.setItem("user", JSON.stringify(storedUser));
 
                 alert(res.data.message || "Profile updated successfully!");
-                setshowpersonal(false);
             } else {
                 alert(res.data.message || "Failed to update profile.");
             }
@@ -164,12 +177,10 @@ function Profile() {
             });
             if (res.data.success) {
                 alert(res.data.message || "Password changed successfully!");
-                // Clear fields
                 setNewPassword("");
                 setConfirmPassword("");
                 setOtp("");
                 setOtpSent(false);
-                setshowpass(false);
             } else {
                 alert(res.data.message || "Failed to change password.");
             }
@@ -181,393 +192,460 @@ function Profile() {
         }
     };
 
-
-    //calculations....
     const totalviews = blogs.reduce((sum, blog) => sum + (blog.views || 0), 0);
-
     const totallikes = blogs.reduce((sum, blog) => sum + (blog.likes || 0), 0);
+    const totalcomments = blogs.reduce((sum, blog) => sum + (blog.comments?.length || 0), 0);
 
-    const totalcomments = blogs.reduce(
-        (sum, blog) => sum + (blog.comments?.length || 0),
-        0
-    );
-
-
-    // const like = (id) => {
-    //     axios.post(`${API_URL}/like`, { id })
-    //         .then(res => {
-             
-    //             setBlogs(prevBlogs => prevBlogs.map(blog =>
-    //                 blog._id === id ? { ...blog, likes: res.data.likes } : blog
-    //             ));
-    //         })
-    //         .catch(err => {
-    //             console.error(err);
-    //             console.log("unable to like ");
-    //         })
-
-    // }
     const getnoti = async () => {
         await axios.get(`${API_URL}/notifications/${userId}`)
             .then(res => {
                 setNotifications(res.data);
-
             })
             .catch(err => {
                 console.error("Error fetching notifs:", err);
-                console.log("unable to fetch notiis ");
             });
     }
+
     useEffect(() => {
         getprofile();
-
         if (currentUsername) {
             socket.emit("setup_user", currentUsername);
         }
-
         const handleNewNotification = (newNotif) => {
             setNotifications(prev => [newNotif, ...prev]);
-
         };
-
         socket.on("receive_notification", handleNewNotification);
-
         return () => {
             socket.off("receive_notification", handleNewNotification);
         };
-
     }, [currentUsername]);
+
     useEffect(() => {
-        getprofile();
-
-
-
-    }, []);
-    // const handleshare = ()=>{
-
-    // }
-    return (<>
-        
-        <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto", fontFamily: "'Inter', sans-serif" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
-                <div>
-                    <h1>{username}</h1>
-                    {image && (
-                        <img src={image} alt="" style={{ width: "150px", height: "150px", borderRadius: "50%", objectFit: "cover", marginBottom: "15px" }} />
-                    )}
-                 
-                </div>
-                <p>{bio}</p>
-
-            </div>
-            no. of blogs submitted : {blogcount}
-            verified: {vericount}
-
-            {/* Followers / Following counts */}
-            <div style={{ display: "flex", gap: "20px", margin: "15px 0" }}>
-                <span
-                    onClick={() => setShowFollowers(!showFollowers)}
-                    style={{ cursor: "pointer", fontWeight: "bold" }}
-                >
-                    Followers: {followers.length}
-                </span>
-                <span
-                    onClick={() => setShowFollowing(!showFollowing)}
-                    style={{ cursor: "pointer", fontWeight: "bold" }}
-                >
-                    Following: {following.length}
-                </span>
-            </div>
-
-            {/* Followers list */}
-            {showFollowers && (
-                <div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "10px", marginBottom: "15px" }}>
-                    <h3>Followers</h3>
-                    {followers.length === 0 ? (
-                        <p style={{ color: "#888" }}>No followers yet</p>
-                    ) : (
-                        followers.map((f) => (
-                            <div key={f._id} style={{ padding: "5px 0" }}>
-                                <Link to={`/searchedprofile/${f._id}`}>{f.name}</Link>
-                            </div>
-                        ))
-                    )}
-                </div>
-            )}
-
-            {/* Following list */}
-            {showFollowing && (
-                <div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "10px", marginBottom: "15px" }}>
-                    <h3>Following</h3>
-                    {following.length === 0 ? (
-                        <p style={{ color: "#888" }}>Not following anyone yet</p>
-                    ) : (
-                        following.map((f) => (
-                            <div key={f._id} style={{ padding: "5px 0" }}>
-                                <Link to={`/searchedprofile/${f._id}`}>{f.name}</Link>
-                            </div>
-                        ))
-                    )}
-                </div>
-            )}
-
-            <h2>yours blog : </h2>
-            {blogs.map((blog) => (
-                <div key={blog._id} className="blog-card">
-                    {blog.image && (
-                            <img src={blog.image} alt="" style={{ width: "300px", height: "auto" }} />
-                        )}
-
-                        {blog.category && (
-                            <div style={{ backgroundColor: "#333", color: "white", padding: "4px 8px", borderRadius: "4px", display: "inline-block", marginBottom: "8px", fontSize: "12px" }}>
-                                {blog.category}
-                            </div>
-                        )}
-                        <h2>{blog.title}</h2>
-                        <h4 style={{ color: "#aaa", margin: "4px 0" }}>{blog.subtitle}</h4>
-                        <p style={{ fontSize: "14px", color: "#888", marginBottom: "12px" }}>By {blog.author}</p>
-                        
-                      likes = {blog.likes}
-                     <br />
-
-                      views = {blog.views}
-                      <br />
-
-                    <Link to={`/blog/${blog._id}`} >
-                        Read Full blog
-                    </Link>
-            <button onClick={() => setSelectedBlogId(selectedBlogId === blog._id ? null : blog._id)}>
-  {selectedBlogId === blog._id ? "cancel" : "share"}
-</button>
-
-
-
-                    <hr />
-                </div>))}
-            <h2>your liked blog : </h2>
-            {likes.map((blog) => (<div key={blog._id}>
-                <Link to={`/blog/${blog._id}`}>{blog.title}</Link>
-            </div>))}
-            <h2>your commented blog : </h2>
-            {commentblog.map((blog) => (<div key={blog._id}>
-                <Link to={`/blog/${blog._id}`}>{blog.title}</Link>
-            </div>))}
-            <hr />
-            <h2>your saved blog : </h2>
-            {saved.map((blog) => (<div key={blog._id}>
-                <Link to={`/blog/${blog._id}`}>{blog.title}</Link>
-            </div>))}
-            <hr />
-            <hr />
-            <hr />
-             {selectedBlogId && (
-
-        <div style={{ padding: "20px", background: "lightblue" }}>
-            <h3>Select chatters to share with:</h3>
-  {chatters.map((chatter) =>(
-    <div key={chatter._id}>
-        <div style={{display:"flex"}}><p>{chatter.name}</p> 
-        <input 
-            type="checkbox" 
-            checked={selectedChatters.includes(chatter._id)}
-            onChange={(e) => {
-                if (e.target.checked) {
-                    setSelectedChatters([...selectedChatters, chatter._id]);
-                } else {
-                    setSelectedChatters(selectedChatters.filter(id => id !== chatter._id));
-                }
-            }}
-        /></div>
-    </div>
-  ))}
-  <button 
-    onClick={async () => {
-        if (selectedChatters.length === 0) return;
-        const blogUrl = `${import.meta.env.VITE_FRONTEND_URL}/blog/${selectedBlogId}`;
-        const messageContent = `Check out this blog: ${blogUrl}`;
-        
-        try {
-            // Track sharer in blog's sharers array
-            await axios.post(`${API_URL}/shareblog`, { blogId: selectedBlogId, userId });
-
-            for (const chatterId of selectedChatters) {
-                const messageData = {
-                    senderId: userId,
-                    receiverId: chatterId,
-                    message: messageContent
-                };
-                const res = await axios.post(`${API_URL}/sendmessage`, messageData);
-                socket.emit("send_message", res.data);
-            }
-            setSelectedBlogId(null);
-            setSelectedChatters([]);
-            alert("Shared successfully!");
-        } catch (err) {
-            console.error("Error sharing:", err);
-            alert("Failed to share.");
+        if (activeTab === 'reach') {
+            getnoti();
         }
-    }}
-    style={{ marginTop: "10px", padding: "5px 10px" }}
-  >
-    Send
-  </button>
-        </div>
+    }, [activeTab]);
 
-      )}
 
-            totalviews : {totalviews}
-            <hr />
-            totallokes ; {totallikes}
-            <hr />
-            totalcommests : {totalcomments}
-            <hr />
-            bc : {bc}
+    const renderBlogList = (blogList, isArchive = false) => {
+        if (blogList.length === 0) {
+            return (
+                <div className="profile-empty-state">
+                    <ArchiveIcon />
+                    <p>No blogs found here yet.</p>
+                </div>
+            )
+        }
+        return (
+            <div className="profile-blogs-list">
+                {blogList.map((blog) => (
+                    <div key={blog._id} className="profile-blog-item">
+                        {blog.image && (
+                            <Link to={`/blog/${blog._id}`} className="profile-blog-image-wrapper">
+                                <img src={blog.image} alt={blog.title} className="profile-blog-image" />
+                            </Link>
+                        )}
+                        <div className="profile-blog-content">
+                            {blog.category && <div className="profile-blog-category">{blog.category}</div>}
+                            <Link to={`/blog/${blog._id}`} style={{ textDecoration: 'none' }}>
+                                <h2 className="profile-blog-title">
+                                    {blog.title}
+                                    {!isArchive && <CheckCircle style={{ width: '16px', marginLeft: '8px', color: '#ff6b00', display: 'inline-block', verticalAlign: 'middle' }} />}
+                                </h2>
+                            </Link>
+                            <p className="profile-blog-subtitle">{blog.subtitle}</p>
+                            
+                            <div className="profile-blog-meta">
+                                {blog.author && <span>By {blog.author}</span>}
+                                {blog.likes !== undefined && (
+                                    <div className="profile-blog-meta-item">
+                                        <Heart /> {blog.likes}
+                                    </div>
+                                )}
+                                {blog.views !== undefined && (
+                                    <div className="profile-blog-meta-item">
+                                        <Eye /> {blog.views}
+                                    </div>
+                                )}
+                                
+                                {!isArchive && (
+                                    <button 
+                                        className="profile-btn" 
+                                        style={{ padding: '6px 12px', fontSize: '0.8rem', background: '#f5f5f5', color: '#111' }}
+                                        onClick={() => setSelectedBlogId(selectedBlogId === blog._id ? null : blog._id)}
+                                    >
+                                        {selectedBlogId === blog._id ? "Cancel Share" : "Share"}
+                                    </button>
+                                )}
+                            </div>
 
-            <hr />
-            <button onClick={getnoti}>notification history</button>
-            {notifications.length === 0 ? (
-                <p style={{ padding: "15px", color: "#888", textAlign: "center" }}>No notifications yet</p>
-            ) : (
-                notifications.map((n, i) => (
-                    <div key={i} style={{ padding: "12px", borderBottom: "1px solid #f9f9f9", fontSize: "13px" }}>
-                        <p style={{ margin: "0 0 5px 0" }}>{n.message}</p>
-                        <small style={{ color: "#aaa" }}>{new Date(n.time).toLocaleString()}</small>
+                            {selectedBlogId === blog._id && !isArchive && (
+                                <div style={{ marginTop: '16px', padding: '16px', background: '#fafafa', borderRadius: '12px', border: '1px solid #eee' }}>
+                                    <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem' }}>Select chatters to share with:</h4>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto' }}>
+                                        {chatters.map((chatter) => (
+                                            <label key={chatter._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'pointer' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedChatters.includes(chatter._id)}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            setSelectedChatters([...selectedChatters, chatter._id]);
+                                                        } else {
+                                                            setSelectedChatters(selectedChatters.filter(id => id !== chatter._id));
+                                                        }
+                                                    }}
+                                                />
+                                                {chatter.name}
+                                            </label>
+                                        ))}
+                                        {chatters.length === 0 && <span style={{fontSize:'0.8rem', color:'#888'}}>No chatters available.</span>}
+                                    </div>
+                                    <button
+                                        className="profile-btn"
+                                        style={{ marginTop: '12px', width: '100%', padding: '8px' }}
+                                        onClick={async () => {
+                                            if (selectedChatters.length === 0) return;
+                                            const blogUrl = `${import.meta.env.VITE_FRONTEND_URL}/blog/${selectedBlogId}`;
+                                            const messageContent = `Check out this blog: ${blogUrl}`;
+
+                                            try {
+                                                await axios.post(`${API_URL}/shareblog`, { blogId: selectedBlogId, userId });
+
+                                                for (const chatterId of selectedChatters) {
+                                                    const messageData = {
+                                                        senderId: userId,
+                                                        receiverId: chatterId,
+                                                        message: messageContent
+                                                    };
+                                                    const res = await axios.post(`${API_URL}/sendmessage`, messageData);
+                                                    socket.emit("send_message", res.data);
+                                                }
+                                                setSelectedBlogId(null);
+                                                setSelectedChatters([]);
+                                                alert("Shared successfully!");
+                                            } catch (err) {
+                                                console.error("Error sharing:", err);
+                                                alert("Failed to share.");
+                                            }
+                                        }}
+                                    >
+                                        Send Message
+                                    </button>
+                                </div>
+                            )}
+
+                        </div>
                     </div>
-                ))
-            )}
+                ))}
+            </div>
+        );
+    }
+
+    const handleLogout = () => {
+        axios.post(`${API_URL}/logout`)
+            .then(() => {
+                localStorage.removeItem('user');
+                navigate("/");
+                window.location.reload();
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Logout failed");
+            });
+    };
+
+    return (
+        <div className="profile-page-wrapper">
+            {/* Mobile Topbar */}
+            <div className="profile-mobile-topbar">
+                <button className="profile-menu-toggle" onClick={() => setDrawerOpen(true)}>
+                    <Menu />
+                </button>
+                <span className="profile-mobile-topbar-title">@{username}</span>
+                <div style={{ width: 24 }}></div> {/* Spacer for centering */}
+            </div>
+
+            {/* Sidebar Overlay (Mobile) */}
+            <div 
+                className={`profile-sidebar-overlay ${drawerOpen ? 'open' : ''}`}
+                onClick={() => setDrawerOpen(false)}
+            />
+
+            {/* Sidebar */}
+            <nav className={`profile-sidebar ${drawerOpen ? 'open' : ''}`}>
+                <div className="profile-sidebar-header">
+                    Settings
+                </div>
+                <div className="profile-sidebar-menu">
+                    <button 
+                        className={`profile-sidebar-item ${activeTab === 'blogs' ? 'active' : ''}`}
+                        onClick={() => { setActiveTab('blogs'); setDrawerOpen(false); }}
+                    >
+                        <MessageSquare /> Verified Blogs
+                    </button>
+                    <button 
+                        className={`profile-sidebar-item ${activeTab === 'personal' ? 'active' : ''}`}
+                        onClick={() => { setActiveTab('personal'); setDrawerOpen(false); }}
+                    >
+                        <UserCircle /> Personal Details
+                    </button>
+                    <button 
+                        className={`profile-sidebar-item ${activeTab === 'reach' ? 'active' : ''}`}
+                        onClick={() => { setActiveTab('reach'); setDrawerOpen(false); }}
+                    >
+                        <BarChart2 /> Your Reach
+                    </button>
+                    <button 
+                        className={`profile-sidebar-item ${activeTab === 'archive' ? 'active' : ''}`}
+                        onClick={() => { setActiveTab('archive'); setDrawerOpen(false); }}
+                    >
+                        <ArchiveIcon /> Archive
+                    </button>
+                    <button 
+                        className={`profile-sidebar-item ${activeTab === 'security' ? 'active' : ''}`}
+                        onClick={() => { setActiveTab('security'); setDrawerOpen(false); }}
+                    >
+                        <Shield /> Password & Security
+                    </button>
+                    
+                    <div style={{ flex: 1 }}></div>
+                    
+                    <button 
+                        className="profile-sidebar-item" 
+                        style={{ color: '#ff3b30' }}
+                        onClick={handleLogout}
+                    >
+                        <LogOut /> Logout
+                    </button>
+                </div>
+            </nav>
+
+            {/* Main Content */}
+            <main className="profile-main-content">
+                {/* Profile Header */}
+                <header className="profile-header-section">
+                    <div className="profile-avatar-container">
+                        {image ? (
+                            <img src={image} alt={username} className="profile-avatar" />
+                        ) : (
+                            <div className="profile-avatar-placeholder">
+                                {username.charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                    </div>
+                    <div className="profile-info">
+                        <div className="profile-username-row">
+                            <h1 className="profile-username">@{username}</h1>
+                            <div className="profile-bc-badge">
+                                <span>BC</span>
+                                <span>{bc}</span>
+                            </div>
+                        </div>
+                        {/* {formData.username && <h2 className="profile-fullname">{formData.username}</h2>} */}
+                        <p className="profile-bio">{bio}</p>
+                        <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '8px' }}>
+                            <span>{blogcount} Blogs Submitted</span> &nbsp;&bull;&nbsp; <span>{vericount} Verified</span>
+                        </div>
+                    </div>
+                </header>
+
+                {/* Tab Content: Blogs */}
+                {activeTab === 'blogs' && (
+                    <>
+                        <div className="profile-section-title">
+                            Verified Blogs
+                            <span className="profile-section-subtitle">Your published and verified content on blogCHIT</span>
+                        </div>
+                        {renderBlogList(blogs)}
+                    </>
+                )}
+
+                {/* Tab Content: Personal */}
+                {activeTab === 'personal' && (
+                    <>
+                        <div className="profile-section-title">
+                            Edit Details
+                            <span className="profile-section-subtitle">Update your personal information and bio</span>
+                        </div>
+                        <form className="profile-form" onSubmit={changedetails} style={{ marginBottom: '60px' }}>
+                            <div className="profile-input-group">
+                                <label>Username</label>
+                                <input type="text" name="username" value={formData.username} onChange={handleChange} />
+                            </div>
+                            <div className="profile-input-group">
+                                <label>Date of Birth</label>
+                                <input type="text" name="dob" value={formData.dob} onChange={handleChange} />
+                            </div>
+                            <div className="profile-input-group">
+                                <label>Bio</label>
+                                <textarea name="bio" value={formData.bio} onChange={handleChange} rows="3" />
+                            </div>
+                            <div className="profile-input-group">
+                                <label>Phone</label>
+                                <input type="text" name="phone" value={formData.phone} onChange={handleChange} />
+                            </div>
+                            <button type="submit" className="profile-btn">Save Changes</button>
+                        </form>
+                    </>
+                )}
+
+                {/* Tab Content: Reach */}
+                {activeTab === 'reach' && (
+                    <>
+                        <div className="profile-section-title">
+                            Your Reach Overview
+                            <span className="profile-section-subtitle">Analytics and insights for your profile and blogs</span>
+                        </div>
+                        <div className="profile-stats-grid">
+                            <div className="profile-stat-item">
+                                <span className="profile-stat-value">{totalviews}</span>
+                                <span className="profile-stat-label">Total Views</span>
+                            </div>
+                            <div className="profile-stat-item">
+                                <span className="profile-stat-value">{totallikes}</span>
+                                <span className="profile-stat-label">Total Likes</span>
+                            </div>
+                            <div className="profile-stat-item">
+                                <span className="profile-stat-value">{totalcomments}</span>
+                                <span className="profile-stat-label">Total Comments</span>
+                            </div>
+                            <div className="profile-stat-item" onClick={() => setShowFollowers(!showFollowers)} style={{ cursor: 'pointer' }}>
+                                <span className="profile-stat-value">{followers.length}</span>
+                                <span className="profile-stat-label">Followers</span>
+                            </div>
+                            <div className="profile-stat-item" onClick={() => setShowFollowing(!showFollowing)} style={{ cursor: 'pointer' }}>
+                                <span className="profile-stat-value">{following.length}</span>
+                                <span className="profile-stat-label">Following</span>
+                            </div>
+                        </div>
+
+                        {/* Followers/Following Lists Expansion */}
+                        {showFollowers && (
+                            <div style={{ background: '#fafafa', padding: '20px', borderRadius: '12px', marginBottom: '40px' }}>
+                                <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem' }}>Followers</h3>
+                                {followers.length === 0 ? <p style={{ color: '#888' }}>No followers yet.</p> : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        {followers.map(f => (
+                                            <Link key={f._id} to={`/searchedprofile/${f._id}`} style={{ textDecoration: 'none', color: '#111', fontWeight: '500' }}>
+                                                {f.name}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {showFollowing && (
+                            <div style={{ background: '#fafafa', padding: '20px', borderRadius: '12px', marginBottom: '40px' }}>
+                                <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem' }}>Following</h3>
+                                {following.length === 0 ? <p style={{ color: '#888' }}>Not following anyone yet.</p> : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        {following.map(f => (
+                                            <Link key={f._id} to={`/searchedprofile/${f._id}`} style={{ textDecoration: 'none', color: '#111', fontWeight: '500' }}>
+                                                {f.name}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="profile-section-title">Notification History</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            {notifications.length === 0 ? (
+                                <p style={{ color: '#888' }}>No notifications yet.</p>
+                            ) : (
+                                notifications.map((n, i) => (
+                                    <div key={i} style={{ padding: '16px', background: '#fafafa', borderRadius: '12px' }}>
+                                        <p style={{ margin: '0 0 8px 0', fontSize: '1rem', color: '#111' }}>{n.message}</p>
+                                        <small style={{ color: '#888' }}>{new Date(n.time).toLocaleString()}</small>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </>
+                )}
+
+                {/* Tab Content: Archive */}
+                {activeTab === 'archive' && (
+                    <>
+                        <div className="profile-section-title">
+                            Liked Blogs
+                            <span className="profile-section-subtitle">Blogs that you have liked</span>
+                        </div>
+                        {renderBlogList(likes, true)}
+                        
+                        <div className="profile-section-title" style={{ marginTop: '60px' }}>
+                            Commented Blogs
+                            <span className="profile-section-subtitle">Blogs where you left a comment</span>
+                        </div>
+                        {renderBlogList(commentblog, true)}
+
+                        <div className="profile-section-title" style={{ marginTop: '60px' }}>
+                            Saved Blogs
+                            <span className="profile-section-subtitle">Your bookmarked and saved reads</span>
+                        </div>
+                        {renderBlogList(saved, true)}
+                    </>
+                )}
+
+                {/* Tab Content: Security */}
+                {activeTab === 'security' && (
+                    <>
+                        <div className="profile-section-title">
+                            Security Settings
+                            <span className="profile-section-subtitle">Manage your password and account security</span>
+                        </div>
+                        
+                        <div style={{ marginBottom: '30px', padding: '20px', background: '#fafafa', borderRadius: '12px' }}>
+                            <p style={{ margin: '0 0 12px 0', color: '#444' }}>
+                                <strong>Registered Email:</strong> {email || "(No email stored in database)"}
+                            </p>
+                            <button 
+                                className="profile-btn" 
+                                style={{ background: '#fff', color: '#111', border: '1px solid #ddd' }}
+                                onClick={handleSendOtp} 
+                                disabled={loadingOtp}
+                            >
+                                {loadingOtp ? "Sending OTP..." : "Send OTP to Email"}
+                            </button>
+                        </div>
+
+                        <form className="profile-form" onSubmit={changepassword}>
+                            <div className="profile-input-group">
+                                <label>New Password</label>
+                                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+                            </div>
+                            <div className="profile-input-group">
+                                <label>Confirm New Password</label>
+                                <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+                            </div>
+                            <div className="profile-input-group">
+                                <label>OTP</label>
+                                <input 
+                                    type="text" 
+                                    maxLength="6" 
+                                    value={otp} 
+                                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} 
+                                    placeholder="Enter OTP sent to your email" 
+                                    required 
+                                />
+                            </div>
+                            <button type="submit" className="profile-btn" disabled={loadingSave || !otpSent}>
+                                {loadingSave ? "Saving..." : "Change Password"}
+                            </button>
+                        </form>
+                    </>
+                )}
+            </main>
+
+            {/* Floating Write Button */}
+            <Link to="/writeblog" className="floating-write-btn">
+                <Plus size={32} />
+            </Link>
         </div>
-       <button onClick={() =>{setshowpersonal(!showpersonal)}}>{!showpersonal?("personaldetails"):("close")}</button>
-       {showpersonal && (
-  <div>
-    <h2>Personal Details</h2>
-
-    <form onSubmit={changedetails}>
-      <input
-        type="text"
-        name="username"
-        value={formData.username}
-        onChange={handleChange}
-        placeholder={formData.username}
-      />
-
-      <br /><br />
-
-      <input
-        type="text"
-        name="dob"
-        value={formData.dob}
-        onChange={handleChange}
-        placeholder={formData.dob}
-      />
-      <input
-        type="text"
-        name="bio"
-        value={formData.bio}
-        onChange={handleChange}
-        placeholder={formData.bio || "bio"}
-      />
-      <input
-        type="text"
-        name="phone"
-        value={formData.phone}
-        onChange={handleChange}
-        placeholder={formData.phone || "phone"}
-      />
-   
-
-      <br /><br />
-      <button
-        type="submit"
-      >
-        Save
-      </button>
-    </form>
-    <div style={{ marginTop: "10px", color: "#666" }}>
-      <strong>Email state:</strong> {email || "(no email stored in database)"}
-    </div>
-  </div>
-)}
-       <button onClick={() =>{setshowpass(!showpass)}}>{!showpass?("Password and security"):("close")}</button>
-       {showpass && (
-  <div>
-    <h2>security</h2>
-    <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Doloremque veniam vel tenetur odio cupiditate excepturi, sapiente natus itaque ratione deserunt, sint consectetur, exercitationem velit officiis iusto adipisci. Sunt labore quis molestiae pariatur exercitationem, assumenda recusandae.</p>
-    
-    <div>
-      <strong>Registered Email:</strong> {email || "(No email stored in database)"}
-      <button 
-        type="button" 
-        onClick={handleSendOtp} 
-        disabled={loadingOtp}
-      >
-        {loadingOtp ? "Sending..." : "Send OTP"}
-      </button>
-    </div>
-    <br />
-
-    <h2>change password</h2>
-    <form onSubmit={changepassword}>
-      <input
-        type="password"
-        value={newPassword}
-        onChange={(e) => setNewPassword(e.target.value)}
-        placeholder="Enter new password"
-        required
-      />
-      <br /><br />
-      
-      confirm new password
-      <input
-        type="password"
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-        placeholder="Confirm new password"
-        required
-      />
-      <br /><br />
-
-      entre otp to change your password
-      <input
-        type="text"
-        maxLength="6"
-        value={otp}
-        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-        placeholder="entre otp sent to your email"
-        required
-      />
-      <br /><br />
-
-      <button
-        type="submit"
-        disabled={loadingSave || !otpSent}
-      >
-        {loadingSave ? "Saving..." : "Save"}
-      </button>
-    </form>
-    <div style={{ marginTop: "10px", color: "#666" }}>
-      <strong>Email state:</strong> {email || "(no email stored in database)"}
-    </div>
-  </div>
-)}
-       <button
-         className="profile-logout-btn"
-         onClick={() => {
-           axios.post(`${API_URL}/logout`)
-             .then(res => {
-               localStorage.removeItem('user');
-               navigate("/");
-               window.location.reload();
-             })
-             .catch(err => {
-               console.error(err);
-               alert("Logout failed");
-             });
-         }}
-       >
-         Logout
-       </button>
-    </>
-    )
+    );
 }
 
-export default Profile
+export default Profile;

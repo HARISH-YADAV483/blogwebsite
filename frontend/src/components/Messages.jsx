@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import Communities from "./Communities";
 import loadingVideo from "../assets/loading.webm";
+import stickerImg from "../assets/sticker.png";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -161,11 +162,14 @@ function Messages({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) 
                          <div style={{ color: "#888", textAlign: "center", padding: "15px 0" }}>Loading...</div>
                          </>
                     ) : filteredChatters.length === 0 ? (
-                        <p style={{ color: "#999", textAlign: "center", padding: "30px 0", fontSize: "14px", lineHeight: "1.6" }}>
-                            {chatters.length === 0
-                                ? "No messages yet. Start a conversation by visiting someone's profile!"
-                                : "No chatters found."}
-                        </p>
+                        <div style={{ textAlign: "center", padding: "30px 0" }}>
+                            <img src={stickerImg} alt="Start chatting" className="empty-chat-sticker" style={{ width: "160px" }} />
+                            <p style={{ color: "#999", fontSize: "14px", lineHeight: "1.6", margin: "8px 0 0" }}>
+                                {chatters.length === 0
+                                    ? "No messages yet. Start a conversation by visiting someone's profile!"
+                                    : "No chatters found."}
+                            </p>
+                        </div>
                     ) : (
                         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                             {filteredChatters.map((chatter) => {
