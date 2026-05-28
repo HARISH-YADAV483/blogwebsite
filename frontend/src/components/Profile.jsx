@@ -64,8 +64,10 @@ function Profile() {
     // New layout states
     const [activeTab, setActiveTab] = useState("blogs");
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
     const getprofile = async () => {
+        setIsLoadingProfile(true);
         await axios.post(`${API_URL}/getprofile`, { username: currentUsername })
             .then(res => {
                 setblogcunt(res.data.blogcount);
@@ -96,6 +98,9 @@ function Profile() {
                 console.error(err);
                 console.log("unable to fetch count ");
             })
+            .finally(() => {
+                setIsLoadingProfile(false);
+            });
     }
 
     const handleChange = (e) => {
@@ -423,8 +428,14 @@ function Profile() {
 
             {/* Main Content */}
             <main className="profile-main-content">
-                {/* Profile Header */}
-                <header className="profile-header-section">
+                {isLoadingProfile ? (
+                    <div className="profile-loading-container">
+                        <div className="profile-loading-text">Loading profile data...</div>
+                    </div>
+                ) : (
+                    <>
+                        {/* Profile Header */}
+                        <header className="profile-header-section">
                     <div className="profile-avatar-container">
                         {image ? (
                             <img src={image} alt={username} className="profile-avatar" />
@@ -637,6 +648,8 @@ function Profile() {
                             </button>
                         </form>
                     </>
+                )}
+                </>
                 )}
             </main>
 

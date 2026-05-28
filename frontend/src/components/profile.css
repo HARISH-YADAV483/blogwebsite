@@ -86,7 +86,8 @@
 /* Main Content Area */
 .profile-main-content {
   flex: 1;
-  max-width: 935px; /* Instagram-like max-width */
+  max-width: 935px;
+  /* Instagram-like max-width */
   margin: 0 auto;
   padding: 60px 40px;
   width: 100%;
@@ -259,7 +260,7 @@
 
 .profile-blog-item:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
 }
 
 .profile-blog-content {
@@ -444,6 +445,49 @@
   margin-bottom: 16px;
 }
 
+/* Loading State */
+.profile-loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  width: 100%;
+}
+
+.profile-loading-text {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #666;
+  position: relative;
+  padding-bottom: 8px;
+  overflow: hidden;
+}
+
+.profile-loading-text::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  height: 3px;
+  background-color: #ff6b00;
+  border-radius: 3px;
+  animation: movingUnderline 1.5s infinite ease-in-out;
+}
+
+@keyframes movingUnderline {
+  0% {
+    width: 0;
+    left: 0;
+  }
+  50% {
+    width: 100%;
+    left: 0;
+  }
+  100% {
+    width: 0;
+    left: 100%;
+  }
+}
+
 /* Mobile & Tablet Styles */
 @media (max-width: 1023px) {
   .profile-page-wrapper {
@@ -486,15 +530,17 @@
     transform: translateX(-100%);
     width: 280px;
     max-width: 85vw;
-    box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
   }
 
   .profile-sidebar.open {
     transform: translateX(0);
   }
-.floating-write-btn{
-  margin-bottom: 43px;
-}
+
+  .floating-write-btn {
+    margin-bottom: 43px;
+  }
+
   /* Overlay for mobile sidebar */
   .profile-sidebar-overlay {
     position: fixed;
@@ -502,7 +548,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0, 0, 0, 0.4);
     z-index: 90;
     opacity: 0;
     pointer-events: none;
@@ -581,7 +627,8 @@
   }
 
   .floating-write-btn {
-    bottom: calc(env(safe-area-inset-bottom, 20px) + 20px); /* Account for mobile footer */
+    bottom: calc(env(safe-area-inset-bottom, 20px) + 20px);
+    /* Account for mobile footer */
     right: 20px;
     width: 56px;
     height: 56px;
