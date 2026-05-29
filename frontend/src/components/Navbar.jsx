@@ -12,7 +12,7 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
     const userData = JSON.parse(localStorage.getItem("user") || "{}");
     const currentUsername = userData.username || null;
     const userId = userData.userId || null;
-    const [message , setmessage] = useState("");
+    const [message, setmessage] = useState("");
     const [token, setToken] = useState(userData.token || null);
     const [isLoggedIn, setIsLoggedIn] = useState(!!token);
     const [role, setrole] = useState(userData.role || "");
@@ -51,12 +51,12 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
                     setUnreadPerChatter(perChatter || {});
                 })
                 .catch(err => console.error("Error fetching unread counts:", err));
-         }
+        }
 
         const handleNewNotification = (newNotif) => {
 
             setUnreadCount((prev) => Math.max(prev + 1, 0));
-          
+
         };
 
         const handleNewUnreadMessage = (msg) => {
@@ -77,9 +77,9 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
             }
         };
 
-      
+
         socket.on("new_unread_message", handleNewUnreadMessage);
-          socket.on("receive_notification", handleNewNotification);
+        socket.on("receive_notification", handleNewNotification);
 
         return () => {
             socket.off("receive_notification", handleNewNotification);
@@ -130,9 +130,9 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
                         <span className="desktop-nav-link__label">Search</span>
                     </Link>
 
-                    <Link to="/messages" className={`desktop-nav-link${(currentPath.startsWith('/messages') || currentPath.startsWith('/chat') || currentPath.startsWith('/communities') || currentPath.startsWith('/communiy')) ? ' active' : ''}`} id="nav-messages" onClick={() => { 
-                        setUnreadMsgCount(0); 
-                        setUnreadChatters([]); 
+                    <Link to="/messages" className={`desktop-nav-link${(currentPath.startsWith('/messages') || currentPath.startsWith('/chat') || currentPath.startsWith('/communities') || currentPath.startsWith('/communiy')) ? ' active' : ''}`} id="nav-messages" onClick={() => {
+                        setUnreadMsgCount(0);
+                        setUnreadChatters([]);
                         axios.post(`${API_URL}/clearunread`, { userId }).catch(err => console.error(err));
                     }}>
                         <svg className="desktop-nav-link__icon" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">

@@ -20,6 +20,7 @@ import Forget from "./components/Forgetpassword";
 import Writeblog from "./components/Writeblog";
 import MessagingLayout from "./components/MessagingLayout";
 import stickerImg from "./assets/sticker.png";
+import Mascot from "./components/Mascot";
 
 function ProtectedAdminRoute({ children }) {
   const userData = JSON.parse(localStorage.getItem("user") || "{}");
@@ -29,26 +30,26 @@ function ProtectedAdminRoute({ children }) {
 
 function App() {
   const location = useLocation();
-  const hideNavbar = 
-    location.pathname === "/login" || 
-    location.pathname === "/register" || 
+  const hideNavbar =
+    location.pathname === "/login" ||
+    location.pathname === "/register" ||
     location.pathname === "/forgotpass";
-  
+
   // Hide navbar on mobile for: messages, chat, communities, community chat, search
-  const hideNavbarMobile = 
+  const hideNavbarMobile =
     location.pathname === "/messages" ||
-    location.pathname.startsWith("/chat/") || 
+    location.pathname.startsWith("/chat/") ||
     location.pathname === "/communities" ||
-    location.pathname.startsWith("/communities/") || 
-    location.pathname.startsWith("/communiy/") || 
+    location.pathname.startsWith("/communities/") ||
+    location.pathname.startsWith("/communiy/") ||
     location.pathname.startsWith("/community/") ||
     location.pathname === "/search" ||
     location.pathname === "/profile";
 
   // Hide footer on mobile for: chat and community chat only
-  const hideFooterMobile = 
-    location.pathname.startsWith("/chat/") || 
-    location.pathname.startsWith("/communiy/") || 
+  const hideFooterMobile =
+    location.pathname.startsWith("/chat/") ||
+    location.pathname.startsWith("/communiy/") ||
     location.pathname.startsWith("/community/");
 
   useEffect(() => {
@@ -66,6 +67,7 @@ function App() {
 
   return (
     <>
+      <Mascot />
       {!hideNavbar && (
         <Navbar
           unreadCount={unreadCount}
@@ -99,7 +101,7 @@ function App() {
         <Route path="/search" element={<Search />} />
         <Route path="/forgotpass" element={<Forget />} />
         <Route path="/notti" element={<Notification unreadCount={unreadCount} setUnreadCount={setUnreadCount} />} />
-        
+
         <Route element={<MessagingLayout unreadPerChatter={unreadPerChatter} setUnreadPerChatter={setUnreadPerChatter} setUnreadMsgCount={setUnreadMsgCount} />}>
           <Route path="/messages" element={
             <div className="empty-chat-placeholder hide-on-mobile">
@@ -111,7 +113,7 @@ function App() {
           <Route path="/chat/:chatterId" element={<Chat unreadPerChatter={unreadPerChatter} setUnreadPerChatter={setUnreadPerChatter} setUnreadMsgCount={setUnreadMsgCount} />} />
           <Route path="/communiy/:communityId" element={<CommunityChat />} />
         </Route>
-        
+
       </Routes>
       {!hideNavbar && (
         <Footer

@@ -1,0 +1,63 @@
+.mascot-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.mascot-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 110px;
+  height: auto;
+  pointer-events: none;
+}
+
+.mascot-video {
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  /* Add subtle infinite float by default */
+  animation: float 4s ease-in-out infinite;
+  transform-origin: center center;
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.mascot-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: #ff6b00;
+  /* BlogCHIT brand orange */
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  filter: blur(1px);
+  box-shadow: 0 0 8px rgba(255, 107, 0, 0.8);
+}
+
+/* Adjust size on smaller screens but keep it visible */
+@media (max-width: 1024px) {
+  .mascot-wrapper {
+    width: 80px;
+  }
+}

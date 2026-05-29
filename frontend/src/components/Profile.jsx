@@ -244,7 +244,7 @@ function Profile() {
         return (
             <div className="profile-blogs-list">
                 {blogList.map((blog) => (
-                    <div key={blog._id} className="profile-blog-item">
+                    <div key={blog._id} className={`profile-blog-item ${blog.image ? 'has-image' : ''}`}>
                         {blog.image && (
                             <Link to={`/blog/${blog._id}`} className="profile-blog-image-wrapper">
                                 <img src={blog.image} alt={blog.title} className="profile-blog-image" />
@@ -277,69 +277,12 @@ function Profile() {
                                     <button 
                                         className="profile-btn" 
                                         style={{ padding: '6px 12px', fontSize: '0.8rem', background: '#f5f5f5', color: '#111' }}
-                                        onClick={() => setSelectedBlogId(selectedBlogId === blog._id ? null : blog._id)}
+                                        onClick={() => setSelectedBlogId(blog._id)}
                                     >
-                                        {selectedBlogId === blog._id ? "Cancel Share" : "Share"}
+                                        Share
                                     </button>
                                 )}
                             </div>
-
-                            {selectedBlogId === blog._id && !isArchive && (
-                                <div style={{ marginTop: '16px', padding: '16px', background: '#fafafa', borderRadius: '12px', border: '1px solid #eee' }}>
-                                    <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem' }}>Select chatters to share with:</h4>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto' }}>
-                                        {chatters.map((chatter) => (
-                                            <label key={chatter._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'pointer' }}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedChatters.includes(chatter._id)}
-                                                    onChange={(e) => {
-                                                        if (e.target.checked) {
-                                                            setSelectedChatters([...selectedChatters, chatter._id]);
-                                                        } else {
-                                                            setSelectedChatters(selectedChatters.filter(id => id !== chatter._id));
-                                                        }
-                                                    }}
-                                                />
-                                                {chatter.name}
-                                            </label>
-                                        ))}
-                                        {chatters.length === 0 && <span style={{fontSize:'0.8rem', color:'#888'}}>No chatters available.</span>}
-                                    </div>
-                                    <button
-                                        className="profile-btn"
-                                        style={{ marginTop: '12px', width: '100%', padding: '8px' }}
-                                        onClick={async () => {
-                                            if (selectedChatters.length === 0) return;
-                                            const blogUrl = `${import.meta.env.VITE_FRONTEND_URL}/blog/${selectedBlogId}`;
-                                            const messageContent = `Check out this blog: ${blogUrl}`;
-
-                                            try {
-                                                await axios.post(`${API_URL}/shareblog`, { blogId: selectedBlogId, userId });
-
-                                                for (const chatterId of selectedChatters) {
-                                                    const messageData = {
-                                                        senderId: userId,
-                                                        receiverId: chatterId,
-                                                        message: messageContent
-                                                    };
-                                                    const res = await axios.post(`${API_URL}/sendmessage`, messageData);
-                                                    socket.emit("send_message", res.data);
-                                                }
-                                                setSelectedBlogId(null);
-                                                setSelectedChatters([]);
-                                                alert("Shared successfully!");
-                                            } catch (err) {
-                                                console.error("Error sharing:", err);
-                                                alert("Failed to share.");
-                                            }
-                                        }}
-                                    >
-                                        Send Message
-                                    </button>
-                                </div>
-                            )}
-
                         </div>
                     </div>
                 ))}
@@ -657,6 +600,122 @@ function Profile() {
             <Link to="/write" className="floating-write-btn">
                 <Plus size={32} />
             </Link>
+
+            {/* Share Modal */}
+            {selectedBlogId && (
+                <div className="profile-share-modal-overlay" onClick={() => setSelectedBlogId(null)}>
+                    <div className="profile-share-modal" onClick={e => e.stopPropagation()}>
+                        
+                        <div className="profile-share-modal-left">
+                            <div className="profile-share-modal-info">
+                                <h3>Share this Blog</h3>
+                                <p>Select friends to send this post directly via messages.</p>
+                            </div>
+                            <div style={{ flex: 1 }}></div>
+                            <button
+                                className="profile-btn profile-share-submit-btn desktop-only"
+                                disabled={selectedChatters.length === 0}
+                                onClick={async () => {
+                                    if (selectedChatters.length === 0) return;
+                                    const blogUrl = `${import.meta.env.VITE_FRONTEND_URL}/blog/${selectedBlogId}`;
+                                    const messageContent = `Check out this blog: ${blogUrl}`;
+
+                                    try {
+                                        await axios.post(`${API_URL}/shareblog`, { blogId: selectedBlogId, userId });
+
+                                        for (const chatterId of selectedChatters) {
+                                            const messageData = {
+                                                senderId: userId,
+                                                receiverId: chatterId,
+                                                message: messageContent
+                                            };
+                                            const res = await axios.post(`${API_URL}/sendmessage`, messageData);
+                                            socket.emit("send_message", res.data);
+                                        }
+                                        setSelectedBlogId(null);
+                                        setSelectedChatters([]);
+                                        alert("Shared successfully!");
+                                    } catch (err) {
+                                        console.error("Error sharing:", err);
+                                        alert("Failed to share.");
+                                    }
+                                }}
+                            >
+                                Send Message {selectedChatters.length > 0 && `(${selectedChatters.length})`}
+                            </button>
+                        </div>
+
+                        <div className="profile-share-modal-right">
+                            <div className="profile-share-modal-header">
+                                <h4>Contacts</h4>
+                                <button className="profile-share-modal-close" onClick={() => setSelectedBlogId(null)}>
+                                    <X size={18} />
+                                </button>
+                            </div>
+                            <div className="profile-share-chatters-list">
+                                {chatters.map((chatter) => (
+                                    <label key={chatter._id} className="profile-share-chatter-item">
+                                        <div className="profile-share-chatter-info">
+                                            <div className="profile-share-chatter-avatar">
+                                                {chatter.name.charAt(0).toUpperCase()}
+                                            </div>
+                                            <span className="profile-share-chatter-name">{chatter.name}</span>
+                                        </div>
+                                        <div className="profile-share-checkbox-wrapper">
+                                            <input
+                                                type="checkbox"
+                                                className="profile-share-checkbox"
+                                                checked={selectedChatters.includes(chatter._id)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedChatters([...selectedChatters, chatter._id]);
+                                                    } else {
+                                                        setSelectedChatters(selectedChatters.filter(id => id !== chatter._id));
+                                                    }
+                                                }}
+                                            />
+                                            <span className="profile-share-custom-checkbox"></span>
+                                        </div>
+                                    </label>
+                                ))}
+                                {chatters.length === 0 && <div className="profile-share-empty">No chatters available.</div>}
+                            </div>
+                            
+                            <button
+                                className="profile-btn profile-share-submit-btn mobile-only"
+                                disabled={selectedChatters.length === 0}
+                                onClick={async () => {
+                                    if (selectedChatters.length === 0) return;
+                                    const blogUrl = `${import.meta.env.VITE_FRONTEND_URL}/blog/${selectedBlogId}`;
+                                    const messageContent = `Check out this blog: ${blogUrl}`;
+
+                                    try {
+                                        await axios.post(`${API_URL}/shareblog`, { blogId: selectedBlogId, userId });
+
+                                        for (const chatterId of selectedChatters) {
+                                            const messageData = {
+                                                senderId: userId,
+                                                receiverId: chatterId,
+                                                message: messageContent
+                                            };
+                                            const res = await axios.post(`${API_URL}/sendmessage`, messageData);
+                                            socket.emit("send_message", res.data);
+                                        }
+                                        setSelectedBlogId(null);
+                                        setSelectedChatters([]);
+                                        alert("Shared successfully!");
+                                    } catch (err) {
+                                        console.error("Error sharing:", err);
+                                        alert("Failed to share.");
+                                    }
+                                }}
+                            >
+                                Send Message {selectedChatters.length > 0 && `(${selectedChatters.length})`}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

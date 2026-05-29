@@ -37,7 +37,7 @@ function LetterAvatar({ name, className = "" }) {
             style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}
         >
             {letter}
-            
+
         </div>
     );
 }
@@ -69,13 +69,13 @@ function Messages({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) 
         if (count > 0) {
             try {
                 await axios.post(`${API_URL}/markread`, { userId, chatterId });
-            
+
                 setUnreadPerChatter((prev) => {
                     const updated = { ...prev };
                     delete updated[chatterId];
                     return updated;
                 });
-                
+
                 setUnreadMsgCount((prev) => Math.max(prev - count, 0));
             } catch (err) {
                 console.error("Error marking messages as read:", err);
@@ -89,7 +89,7 @@ function Messages({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) 
 
     return (
         <div className="messages-sidebar-content" >
-            <div className="upper" style={{ position: "sticky", top: "0px"  , backgroundColor:"white"}}>
+            <div className="upper" style={{ position: "sticky", top: "0px", backgroundColor: "white" }}>
                 <p className="headoo">Your Conversations</p>
                 <p style={{ color: "grey", marginBottom: "9px" }}>Stay Connected and keep the convo going</p>
 
@@ -128,39 +128,39 @@ function Messages({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) 
                             className="messages-search-input"
                             style={{ flex: 1, margin: 0 }}
                         />
-                        <Link to="/search" style={{ 
-                            display: "flex", 
-                            alignItems: "center", 
-                            justifyContent: "center", 
-                            width: "36px", 
-                            height: "36px", 
-                            backgroundColor: "rgba(0,0,0,0.05)", 
-                            borderRadius: "50%", 
-                            textDecoration: "none", 
+                        <Link to="/search" style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "36px",
+                            height: "36px",
+                            backgroundColor: "rgba(0,0,0,0.05)",
+                            borderRadius: "50%",
+                            textDecoration: "none",
                             color: "inherit",
                             flexShrink: 0,
                             transition: "background-color 0.2s"
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.1)"}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.05)"}
-                        title="New Chat"
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.1)"}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.05)"}
+                            title="New Chat"
                         >
                             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
                         </Link>
                     </div>
                     {loading ? (<>
                         <div style={{ display: "flex", justifyContent: "center", padding: "30px 0" }}>
-                            <video 
-                                src={loadingVideo} 
-                                autoPlay 
-                                loop 
-                                muted 
-                                playsInline 
-                                style={{ width: "auto", height: "30vh" , marginTop:"40px"}} 
+                            <video
+                                src={loadingVideo}
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                style={{ width: "auto", height: "30vh", marginTop: "40px" }}
                             />
                         </div>
-                         <div style={{ color: "#888", textAlign: "center", padding: "15px 0" }}>Loading...</div>
-                         </>
+                        <div style={{ color: "#888", textAlign: "center", padding: "15px 0" }}>Loading...</div>
+                    </>
                     ) : filteredChatters.length === 0 ? (
                         <div style={{ textAlign: "center", padding: "30px 0" }}>
                             <img src={stickerImg} alt="Start chatting" className="empty-chat-sticker" style={{ width: "160px" }} />
