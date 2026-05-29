@@ -148,7 +148,7 @@ function CommunityChat() {
                 try {
                     const detailRes = await axios.get(`${API_URL}/communitydetail/${communityId}`);
                     if (detailRes.data.name) setCommunityName(detailRes.data.name);
-                    
+
                     const newMembersMap = {};
                     if (detailRes.data.members) {
                         detailRes.data.members.forEach(member => {
@@ -468,14 +468,14 @@ function CommunityChat() {
             <form className="co" onSubmit={sendMessage} style={{
                 padding: "5px",
                 border: ".1px solid rgba(78, 77, 77, 0.5)",
-                borderRadius:"45px",
+                borderRadius: "45px",
                 display: "flex",
                 gap: "10px",
                 alignItems: "center",
                 position: "relative",
                 background: "transparent",
                 backdropFilter: "blur(10px)",
-                marginBottom:"5px"
+                marginBottom: "5px"
             }}>
                 <div style={{ position: "relative" }}>
                     <button

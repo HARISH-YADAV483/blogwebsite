@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import blogchitLogo from '../assets/blogchit.png';
-
+import Notification from "./Notification";
 import { io } from 'socket.io-client';
 import axios from 'axios'
 
@@ -19,6 +19,26 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
     const navigate = useNavigate();
     const location = useLocation();
     const currentPath = location.pathname;
+    const [nottiOpen, setNottiOpen] = useState(false);
+    const nottiRef = useRef(null);
+
+    // Close dropdown when route changes
+    useEffect(() => {
+        setNottiOpen(false);
+    }, [location.pathname]);
+
+    // Close dropdown on click outside
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (nottiRef.current && !nottiRef.current.contains(e.target)) {
+                setNottiOpen(false);
+            }
+        };
+        if (nottiOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [nottiOpen]);
     useEffect(() => {
         if (token) {
             const userData = JSON.parse(localStorage.getItem("user") || "{}");
@@ -144,16 +164,26 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
                         )}
                     </Link>
 
-                    <Link to="/notti" className={`desktop-nav-link${currentPath === '/notti' ? ' active' : ''}`} id="nav-notifications">
-                        <svg className="desktop-nav-link__icon" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                        </svg>
-                        <span className="desktop-nav-link__label">Notifications</span>
-                        {unreadCount > 0 && (
-                            <span className="desktop-nav-link__badge">{unreadCount}</span>
-                        )}
-                    </Link>
+                    <div className="desktop-notti-wrapper" ref={nottiRef} style={{ position: 'relative' }}>
+                        <button
+                            className={`desktop-nav-link${nottiOpen ? ' active' : ''}`}
+                            id="nav-notifications"
+                            onClick={(e) => { e.preventDefault(); setNottiOpen(prev => !prev); }}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                        >
+                            <svg className="desktop-nav-link__icon" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                            </svg>
+                            <span className="desktop-nav-link__label">Notifications</span>
+                            {unreadCount > 0 && (
+                                <span className="desktop-nav-link__badge">{unreadCount}</span>
+                            )}
+                        </button>
+                        <div className={`desktop-notti-dropdown${nottiOpen ? ' is-open' : ''}`}>
+                            {nottiOpen && <Notification unreadCount={unreadCount} setUnreadCount={setUnreadCount} inline={true} />}
+                        </div>
+                    </div>
 
                     <Link to="/profile" className={`desktop-nav-link${currentPath === '/profile' ? ' active' : ''}`} id="nav-profile">
                         <svg className="desktop-nav-link__icon" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">

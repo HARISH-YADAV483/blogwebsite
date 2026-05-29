@@ -91,7 +91,7 @@ function Messages({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) 
         <div className="messages-sidebar-content" >
             <div className="upper" style={{ position: "sticky", top: "0px", backgroundColor: "white" }}>
                 <p className="headoo">Your Conversations</p>
-                <p style={{ color: "grey", marginBottom: "9px" }}>Stay Connected and keep the convo going</p>
+                <p style={{ color: "black", marginBottom: "9px" }}>Stay Connected and keep the convo going</p>
 
                 {/* Tab Switcher */}
                 <div className="messages-tab-switcher">
@@ -122,7 +122,7 @@ function Messages({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) 
                     <div style={{ marginBottom: "14px", display: "flex", gap: "8px", alignItems: "center" }}>
                         <input
                             type="text"
-                            placeholder="Search by name..."
+                            placeholder="Search by Name..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="messages-search-input"
@@ -134,15 +134,15 @@ function Messages({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) 
                             justifyContent: "center",
                             width: "36px",
                             height: "36px",
-                            backgroundColor: "rgba(0,0,0,0.05)",
+                            backgroundColor: "rgba(249, 158, 61, 1)",
                             borderRadius: "50%",
                             textDecoration: "none",
-                            color: "inherit",
+                            color: "#ededed",
                             flexShrink: 0,
                             transition: "background-color 0.2s"
                         }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.1)"}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.05)"}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.05)"}
                             title="New Chat"
                         >
                             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>

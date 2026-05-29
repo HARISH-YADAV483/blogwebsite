@@ -140,9 +140,12 @@
 }
 
 @keyframes stickerFloat {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0px) rotate(0deg);
     }
+
     50% {
         transform: translateY(-12px) rotate(1.5deg);
     }
@@ -167,7 +170,7 @@
     margin: 0 0 20px 0;
     font-size: clamp(1.4rem, 3vw, 1.8rem);
     font-weight: 400;
-    background: linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%);
+    background: linear-gradient(135deg, #000000 0%, #4a4a4a 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -0.5px;
@@ -232,7 +235,7 @@
 
 .chatter-card .chatter-name {
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 500;
     color: #1a1a1a;
     text-decoration: none;
     display: block;
@@ -244,7 +247,7 @@
 .chatter-card .chatter-last-msg {
     font-size: 13px;
     font-weight: 400;
-    color: #999;
+    color: #2c2b2b;
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -254,7 +257,7 @@
 }
 
 .chatter-card.has-unread .chatter-name {
-    font-weight: 800;
+    font-weight: 400;
     color: #111;
 }
 
@@ -477,11 +480,13 @@
         height: 40px;
     }
 }
+
 @media (min-width: 1023px) {
-    .messaging-layout-container{
+    .messaging-layout-container {
         height: calc(100vh - 89px);
     }
-    .hide-navbar-mobile{
+
+    .hide-navbar-mobile {
         padding-top: 0px;
     }
 }

@@ -15,10 +15,10 @@ export default function Mascot() {
     const id = particleId++;
     setParticles(prev => [...prev, { id, x, y }]);
 
-    // Remove particle after 1 second
+    // Remove particle after 1.5 seconds to allow fade out
     setTimeout(() => {
       setParticles(prev => prev.filter(p => p.id !== id));
-    }, 1000);
+    }, 1500);
   };
 
   useEffect(() => {
@@ -48,7 +48,17 @@ export default function Mascot() {
             scale: scale,
             scaleX: shouldFlip ? -scale : scale,
             duration: 1.2, // Snappier, faster flight
-            ease: "power2.out" // More responsive easing
+            ease: "power2.out", // More responsive easing
+            onUpdate: function () {
+              // Spawn footprints during flight
+              if (Math.random() > 0.6 && mascotRef.current) {
+                const r = mascotRef.current.getBoundingClientRect();
+                createParticle(
+                  r.left + r.width / 2 + (Math.random() - 0.5) * 15,
+                  r.top + r.height / 2 + 10 + (Math.random() - 0.5) * 15
+                );
+              }
+            }
           });
         } else if (retries < maxRetries) {
           retries++;
@@ -71,11 +81,11 @@ export default function Mascot() {
     }
     else if (path === '/search') {
       // Search: Fly near the search input/icon
-      flyToElement( isMobile ? '.search-input-wrapper':'.search-input', isMobile ? +200 : -80, isMobile ? 0 : -30, isMobile ? 0.8 : 0.7);
+      flyToElement(isMobile ? '.search-input-wrapper' : '.search-input', isMobile ? +200 : -80, isMobile ? 0 : -30, isMobile ? 0.8 : 0.7);
     }
     else if (path === '/messages' || path.startsWith('/chat/')) {
       // Messages: Fly around the sticker or chat area
-      flyToElement( isMobile ? '.headoo' : '.empty-chat-sticker', isMobile ? 170 : -100, isMobile ? -15 : 100, isMobile ? 0.7 : 0.9);
+      flyToElement(isMobile ? '.headoo' : '.empty-chat-sticker', isMobile ? 170 : -100, isMobile ? -15 : 100, isMobile ? 0.7 : 0.9);
 
       // If no sticker (e.g. inside a chat), just hover top right
       setTimeout(() => {
@@ -85,7 +95,16 @@ export default function Mascot() {
             y: isMobile ? 70 : 100,
             scale: isMobile ? 0.6 : 0.8,
             duration: 2,
-            ease: "power2.inOut"
+            ease: "power2.inOut",
+            onUpdate: function () {
+              if (Math.random() > 0.6 && mascotRef.current) {
+                const r = mascotRef.current.getBoundingClientRect();
+                createParticle(
+                  r.left + r.width / 2 + (Math.random() - 0.5) * 15,
+                  r.top + r.height / 2 + 10 + (Math.random() - 0.5) * 15
+                );
+              }
+            }
           });
         }
       }, 600);
@@ -106,10 +125,13 @@ export default function Mascot() {
           duration: 2.5,
           ease: "power1.inOut",
           onUpdate: function () {
-            // Spawn particles occasionally
-            if (Math.random() > 0.7 && mascotRef.current) {
-              const rect = mascotRef.current.getBoundingClientRect();
-              createParticle(rect.left + rect.width / 2, rect.top + rect.height / 2 + 20);
+            // Spawn footprints occasionally
+            if (Math.random() > 0.6 && mascotRef.current) {
+              const r = mascotRef.current.getBoundingClientRect();
+              createParticle(
+                r.left + r.width / 2 + (Math.random() - 0.5) * 8,
+                r.top + r.height / 2 + 10 + (Math.random() - 0.5) * 8
+              );
             }
           },
           onComplete: () => {
@@ -125,7 +147,16 @@ export default function Mascot() {
         y: isMobile ? 60 : 80,
         scale: isMobile ? 0.6 : 0.8,
         duration: 2,
-        ease: "power2.inOut"
+        ease: "power2.inOut",
+        onUpdate: function () {
+          if (Math.random() > 0.6 && mascotRef.current) {
+            const r = mascotRef.current.getBoundingClientRect();
+            createParticle(
+              r.left + r.width / 2 + (Math.random() - 0.5) * 15,
+              r.top + r.height / 2 + 10 + (Math.random() - 0.5) * 15
+            );
+          }
+        }
       });
     }
 
@@ -156,12 +187,43 @@ function Particle({ x, y }) {
 
   useEffect(() => {
     if (particleRef.current) {
+      // Footprints pop in then fade out in place
       gsap.fromTo(particleRef.current,
-        { x, y, opacity: 1, scale: 1 },
-        { x: x - 20 - Math.random() * 30, y: y + 40 + Math.random() * 50, opacity: 0, scale: 0, duration: 1, ease: "power1.out" }
+        { x, y, opacity: 0, scale: 0, rotation: (Math.random() - 0.5) * 40 },
+        { 
+          opacity: 1, 
+          scale: 1, 
+          duration: 0.2, 
+          ease: "back.out(1.5)",
+          onComplete: () => {
+            gsap.to(particleRef.current, {
+              opacity: 0,
+              scale: 0.5,
+              duration: 0.8,
+              delay: 0.4,
+              ease: "power2.out"
+            });
+          }
+        }
       );
     }
   }, [x, y]);
 
-  return <div ref={particleRef} className="mascot-particle" />;
+  return (
+    <div ref={particleRef} className="mascot-footprint" style={{
+      position: 'absolute',
+      pointerEvents: 'none',
+      zIndex: 9998,
+      marginLeft: '-8px', // Center the SVG
+      marginTop: '-8px'
+    }}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+  <circle cx="12" cy="12" r="2" fill="#ff6b00" />
+  <circle cx="6" cy="8" r="1.5" fill="#ff8c42" />
+  <circle cx="18" cy="9" r="1.5" fill="#ff8c42" />
+  <circle cx="8" cy="18" r="1" fill="#ffb366" />
+  <circle cx="17" cy="17" r="1" fill="#ffd4a3" />
+</svg>
+    </div>
+  );
 }

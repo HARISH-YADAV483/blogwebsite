@@ -14,7 +14,8 @@ import {
     MessageSquare,
     Heart,
     Eye,
-    CheckCircle
+    CheckCircle,
+    Share2
 } from 'lucide-react';
 import './profile.css';
 
@@ -275,11 +276,12 @@ function Profile() {
                                 
                                 {!isArchive && (
                                     <button 
-                                        className="profile-btn" 
-                                        style={{ padding: '6px 12px', fontSize: '0.8rem', background: '#f5f5f5', color: '#111' }}
+                                        className="profile-share-icon-btn" 
                                         onClick={() => setSelectedBlogId(blog._id)}
+                                        title="Share Blog"
+                                        aria-label="Share Blog"
                                     >
-                                        Share
+                                        <Share2 size={16} />
                                     </button>
                                 )}
                             </div>

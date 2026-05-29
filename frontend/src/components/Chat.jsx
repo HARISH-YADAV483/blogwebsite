@@ -497,14 +497,14 @@ function Chat({ unreadPerChatter, setUnreadPerChatter, setUnreadMsgCount }) {
             <form className="co" onSubmit={sendMessage} style={{
                 padding: "5px",
                 border: ".1px solid rgba(78, 77, 77, 0.5)",
-                borderRadius:"45px",
+                borderRadius: "45px",
                 display: "flex",
                 gap: "10px",
                 alignItems: "center",
                 position: "relative",
                 background: "transparent",
                 backdropFilter: "blur(10px)",
-                marginBottom:"5px"
+                marginBottom: "5px"
             }}>
                 <div style={{ position: "relative" }}>
                     <button
