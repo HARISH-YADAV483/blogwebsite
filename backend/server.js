@@ -474,17 +474,15 @@ app.get("/pendingblog", async (req, res) => {
 //send for home page
 app.get("/verified", async (req, res) => {
     try {
-        const limit = 5;
-        const skip = parseInt(req.query.skip) || 0;
+        const limit = 9;
+        const page = parseInt(req.query.page) || 1;
+        const skip = (page - 1) * limit;
+        const total = await Blog.countDocuments({ status: "verified" });
         const pend = await Blog.find({ status: "verified" }).sort({ _id: -1 }).skip(skip).limit(limit);
 
-        if (pend.length > 0) {
-            res.json(pend);
-        } else {
-            res.json({ message: "No more pending blogs", blogs: [] });
-        }
+        res.json({ blogs: pend, total, page, totalPages: Math.ceil(total / limit) });
     } catch (error) {
-        console.error("Error fetching pending blogs:", error);
+        console.error("Error fetching verified blogs:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
