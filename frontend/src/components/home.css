@@ -566,3 +566,239 @@
     padding-top: 0px !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   CURRENTLY TRENDING SECTION
+   ═══════════════════════════════════════════════════════════ */
+
+.trending-section {
+  padding: 0px 0vw;
+  background: #ffffff;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+}
+
+.trending-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 130px;
+  padding: 0px 4vw;
+}
+
+.trending-main-title {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 100;
+  color: #111111;
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+.trending-browse-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 28px;
+  background: #ffffff;
+  color: #111111;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: 1px solid #111111;
+  border-radius: 24px;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.trending-browse-btn:hover {
+  background: #111111;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.trending-container {
+  position: relative;
+  background: transparent; /* vibrant warm yellow/orange */
+  border-radius: 0px;
+  padding: 100px 40px 60px 40px;
+  margin-top: 80px;
+}
+
+.trending-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+/* Card Styling */
+.trending-card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.trending-card:hover {
+  transform: translateY(-8px);
+}
+
+.trending-img-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 16px;
+  margin-top: -160px; /* Pulls image up to overlap container boundary */
+  margin-bottom: 20px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.15);
+  background: #ffffff;
+}
+
+.trending-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+  display: block;
+}
+
+.trending-img-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f98735 0%, #fbd38a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trending-badge {
+  position: absolute;
+  top: -12px;
+  left: 16px;
+  background: #e63946; /* red capsule */
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  z-index: 2;
+  box-shadow: 0 4px 10px rgba(230, 57, 70, 0.25);
+  white-space: nowrap;
+}
+
+.trending-meta {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111111;
+  opacity: 0.8;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trending-meta-dot {
+  font-weight: bold;
+}
+
+.trending-title {
+  font-size: 1.25rem;
+  font-weight: 300;
+  color: #111111;
+  line-height: 1.4;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CURRENTLY TRENDING RESPONSIVE Mechanics
+   ═══════════════════════════════════════════════════════════ */
+
+@media screen and (max-width: 1024px) {
+  .trending-section {
+    padding: 50px 0px;
+  }
+
+  .trending-header {
+    margin-bottom: 90px;
+    padding: 0px 6vw;
+  }
+
+  .trending-container {
+    padding: 20px 20px 40px 20px; /* Reduced top padding since grid has padding-top */
+    margin-top: 0px;
+    border-radius: 0px;
+    background-color: transparent;
+  }
+
+  .trending-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 24px;
+    padding-top: 130px; /* Padding inside the scroll container holds the overlapping image perfectly */
+    padding-bottom: 16px;
+    scrollbar-width: none; /* Hide scrollbar for standard Firefox */
+  }
+
+  .trending-grid::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for Chrome/Safari */
+  }
+
+  .trending-card {
+    flex: 0 0 280px;
+    scroll-snap-align: start;
+  }
+
+  .trending-img-wrapper {
+    margin-top: -120px;
+    aspect-ratio: 16 / 10;
+  }
+
+  .trending-title {
+    font-size: 1.15rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .trending-section {
+    padding: 40px 0px;
+  }
+
+  .trending-header {
+    margin-bottom: 30px;
+    padding: 0px 5vw;
+  }
+
+  .trending-container {
+    padding: 10px 16px 10px 16px;
+    margin-top: 0px;
+    background-color: transparent;
+  }
+
+  .trending-grid {
+    padding-top: 100px; /* Matching smaller offset on tiny screens */
+  }
+
+  .trending-card {
+    flex: 0 0 240px;
+  }
+
+  .trending-img-wrapper {
+    margin-top: -90px;
+  }
+
+  .trending-title {
+    font-size: 1rem;
+  }
+  .trending-main-title{
+    font-size: 1.5rem;
+  }
+  .trending-browse-btn{
+    text-align: center;
+    border-radius: 0px;
+  }
+}

@@ -1847,7 +1847,22 @@ app.get("/communitydetail/:id", async (req, res) => {
         });
     }
 });
+app.get("/gettopblogs" , async (req,res)=>{
+    try{
+ const blogs =    await Blog.find({status : "verified"})
+    .sort({views : -1})
+    .limit(10)
+    res.json({
+blogs,
+message : "trendingblog fetched successfully"
+    })
+}catch(error){
+res.json({
+    message : "unable to fetch trending blogs"
+})
+}
 
+})
 
 const PORT = process.env.PORT || 5003;
 server.listen(PORT, () => {

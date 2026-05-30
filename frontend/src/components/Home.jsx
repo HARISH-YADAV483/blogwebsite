@@ -12,6 +12,7 @@ function Home() {
     const [message, setmessage] = useState(null);
     const navigate = useNavigate();
     const [chatters , setchatters] = useState([]);
+    const [topblogs , settopblogs] = useState([]);
     const [selectedBlogId, setSelectedBlogId] = useState(null);
     const [selectedChatters, setSelectedChatters] = useState([]);
     const userId = JSON.parse(localStorage.getItem("user") || "{}").userId
@@ -24,7 +25,20 @@ function Home() {
         }
     }, [token, navigate]);
 
-
+const gettopblogs = async() =>{ 
+    await axios.get(`${API_URL}/gettopblogs`)
+    .then(res =>{
+        if (res.data.blogs) {
+            settopblogs(res.data.blogs);
+            // alert(res.data.message);
+        } else {
+            console.warn(res.data.message || "Failed to fetch trending blogs");
+        }
+    })
+    .catch(err =>{
+        console.error("Error fetching trending blogs:", err);
+    })
+}
 
     const getpendingblogs = async (isLoadMore = false) => {
         const skip = isLoadMore ? blogs.length : 0;
@@ -83,6 +97,24 @@ function Home() {
                 setmessage("Unable to save blog");
             })
     }
+    const formatDate = (blog) => {
+        if (blog.createdAt) {
+            return new Date(blog.createdAt).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric"
+            });
+        }
+        if (blog.time) {
+            return new Date(blog.time).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric"
+            });
+        }
+        return "March 24, 2026";
+    };
+
     const getChatters = async () => {
         try {
             const res = await axios.get(`${API_URL}/chatters/${userId}`);
@@ -93,11 +125,22 @@ function Home() {
             
         }
     };
+    useEffect(() => {
+  const interval = setInterval(() => {
+    settopblogs(prev => {
+      if (prev.length <= 1) return prev;
+      return [...prev.slice(1), prev[0]];
+    });
+  }, 10000);
+
+  return () => clearInterval(interval);
+}, []);
 
     useEffect(() => {
         if (token) {
             getpendingblogs();
             getChatters();
+            gettopblogs();
         }
     }, [token]);
 
@@ -231,6 +274,65 @@ function Home() {
                 </div>
             </section>
 
+            {/* ─── CURRENTLY TRENDING ─────────────────────────────────── */}
+            {topblogs && topblogs.length > 0 && (
+                <section className="trending-section">
+                    <div className="trending-header">
+                        <h2 className="trending-main-title">Currently Trending</h2>
+                        <Link to="/search" className="trending-browse-btn">Browse more</Link>
+                    </div>
+
+                    <div className="trending-container">
+                        <div className="trending-grid">
+                            {topblogs.slice(0, 3).map((blog) => (
+                                <Link key={blog._id} to={`/blog/${blog._id}`} className="trending-card">
+                                    <div className="trending-img-wrapper">
+                                        {blog.category && (
+                                            <span className="trending-badge">{blog.category}</span>
+                                        )}
+                                        {blog.image ? (
+                                            <img src={blog.image} alt={blog.title} className="trending-img" />
+                                        ) : (
+                                            <div className="trending-img-fallback">
+                                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="1.5">
+                                                    <path d="M4 19.5A2.5 2.5 0 0 1 6 17h12v3H6a2.5 2.5 0 0 1-2.5-2.5z"/>
+                                                    <path d="M6 2c0 .6-.4 1-1 1s-1-.4-1-1 .4-1 1-1 1 .4 1 1zM18 2c0 .6-.4 1-1 1s-1-.4-1-1 .4-1 1-1 1 .4 1 1z"/>
+                                                    <path d="M4 6v10.5M18 6v11M6 6h12V2H6v4z"/>
+                                                </svg>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    <div className="trending-meta">
+                                        <span>{formatDate(blog)}</span>
+                                        <span className="trending-meta-dot">•</span>
+                                        <span>{blog.comments?.length || 0} {blog.comments?.length === 1 ? "Comment" : "Comments"}</span>
+                                    </div>
+                                    
+                                    <h3 className="trending-title">{blog.title}</h3>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
             {/* ─── BLOG FEED ─────────────────────────────────────────── */}
             <div className="main">
                 {blogs.map((blog) => (
