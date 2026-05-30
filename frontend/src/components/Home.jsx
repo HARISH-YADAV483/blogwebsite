@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import birdImg from '../assets/bird.png';
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios'
@@ -11,8 +11,10 @@ function Home() {
     const [hasMore, setHasMore] = useState(true);
     const [message, setmessage] = useState(null);
     const navigate = useNavigate();
-    const [chatters , setchatters] = useState([]);
-    const [topblogs , settopblogs] = useState([]);
+    const [chatters, setchatters] = useState([]);
+    const [topblogs, settopblogs] = useState([]);
+    const trendingRef = useRef(null);
+    const [trendingInView, setTrendingInView] = useState(false);
     const [selectedBlogId, setSelectedBlogId] = useState(null);
     const [selectedChatters, setSelectedChatters] = useState([]);
     const userId = JSON.parse(localStorage.getItem("user") || "{}").userId
@@ -25,20 +27,42 @@ function Home() {
         }
     }, [token, navigate]);
 
-const gettopblogs = async() =>{ 
-    await axios.get(`${API_URL}/gettopblogs`)
-    .then(res =>{
-        if (res.data.blogs) {
-            settopblogs(res.data.blogs);
-            // alert(res.data.message);
-        } else {
-            console.warn(res.data.message || "Failed to fetch trending blogs");
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setTrendingInView(true);
+                    observer.unobserve(entry.target);
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        if (trendingRef.current) {
+            observer.observe(trendingRef.current);
         }
-    })
-    .catch(err =>{
-        console.error("Error fetching trending blogs:", err);
-    })
-}
+
+        return () => {
+            if (trendingRef.current) {
+                observer.unobserve(trendingRef.current);
+            }
+        };
+    }, [topblogs]);
+
+    const gettopblogs = async () => {
+        await axios.get(`${API_URL}/gettopblogs`)
+            .then(res => {
+                if (res.data.blogs) {
+                    settopblogs(res.data.blogs);
+                    // alert(res.data.message);
+                } else {
+                    console.warn(res.data.message || "Failed to fetch trending blogs");
+                }
+            })
+            .catch(err => {
+                console.error("Error fetching trending blogs:", err);
+            })
+    }
 
     const getpendingblogs = async (isLoadMore = false) => {
         const skip = isLoadMore ? blogs.length : 0;
@@ -89,7 +113,7 @@ const gettopblogs = async() =>{
         await axios.post(`${API_URL}/save`, { id, userId })
             .then(res => {
                 setmessage(res.data.message);
-                
+
             })
             .catch(err => {
                 console.error(err);
@@ -119,22 +143,22 @@ const gettopblogs = async() =>{
         try {
             const res = await axios.get(`${API_URL}/chatters/${userId}`);
             setchatters(res.data || []);
-         
+
         } catch (err) {
             console.error("Error fetching chatters:", err);
-            
+
         }
     };
     useEffect(() => {
-  const interval = setInterval(() => {
-    settopblogs(prev => {
-      if (prev.length <= 1) return prev;
-      return [...prev.slice(1), prev[0]];
-    });
-  }, 10000);
+        const interval = setInterval(() => {
+            settopblogs(prev => {
+                if (prev.length <= 1) return prev;
+                return [...prev.slice(1), prev[0]];
+            });
+        }, 10000);
 
-  return () => clearInterval(interval);
-}, []);
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         if (token) {
@@ -145,7 +169,7 @@ const gettopblogs = async() =>{
     }, [token]);
 
     if (!token) {
-        return null; 
+        return null;
     }
 
     return (
@@ -186,19 +210,19 @@ const gettopblogs = async() =>{
 
                     <div className="hero-stats">
                         <div className="hero-stat">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
                             <span className="hero-stat-num">10,000+</span>
                             <span className="hero-stat-label">Blogs</span>
                         </div>
                         <div className="hero-stat-divider" />
                         <div className="hero-stat">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
                             <span className="hero-stat-num">2,000+</span>
                             <span className="hero-stat-label">Creators</span>
                         </div>
                         <div className="hero-stat-divider" />
                         <div className="hero-stat">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
                             <span className="hero-stat-num">50+</span>
                             <span className="hero-stat-label">Communities</span>
                         </div>
@@ -218,15 +242,15 @@ const gettopblogs = async() =>{
 
                     {/* Dashed curved SVG connectors */}
                     <svg className="hero-connectors" viewBox="0 0 420 380" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M210 130 Q310 60 360 90" stroke="#ff6b00" strokeWidth="1.5" strokeDasharray="5 5" opacity="0.4"/>
-                        <path d="M250 200 Q370 170 380 220" stroke="#ff6b00" strokeWidth="1.5" strokeDasharray="5 5" opacity="0.4"/>
-                        <path d="M220 260 Q340 290 360 310" stroke="#ff6b00" strokeWidth="1.5" strokeDasharray="5 5" opacity="0.4"/>
+                        <path d="M210 130 Q310 60 360 90" stroke="#ff6b00" strokeWidth="1.5" strokeDasharray="5 5" opacity="0.4" />
+                        <path d="M250 200 Q370 170 380 220" stroke="#ff6b00" strokeWidth="1.5" strokeDasharray="5 5" opacity="0.4" />
+                        <path d="M220 260 Q340 290 360 310" stroke="#ff6b00" strokeWidth="1.5" strokeDasharray="5 5" opacity="0.4" />
                     </svg>
 
                     {/* Floating Card – Blog Post */}
                     <div className="hero-card card-blog">
                         <div className="hero-card-icon-wrap">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff6b00" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff6b00" strokeWidth="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
                         </div>
                         <div className="hero-card-body">
                             <p className="hero-card-title">Blog Post</p>
@@ -240,7 +264,7 @@ const gettopblogs = async() =>{
                     {/* Floating Card – New Comment */}
                     <div className="hero-card card-comment">
                         <div className="hero-card-icon-wrap">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff6b00" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff6b00" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
                         </div>
                         <div className="hero-card-body">
                             <p className="hero-card-title">New Comment</p>
@@ -248,7 +272,7 @@ const gettopblogs = async() =>{
                                 <div className="hero-card-avatar a1" />
                                 <span className="hero-card-comment-text">Great post! Totally agree with your thoughts.</span>
                             </div>
-                            <div className="hero-card-comment-row" style={{opacity:0.5}}>
+                            <div className="hero-card-comment-row" style={{ opacity: 0.5 }}>
                                 <div className="hero-card-avatar a2" />
                                 <span className="hero-card-comment-text">This changed my perspective!</span>
                             </div>
@@ -258,15 +282,15 @@ const gettopblogs = async() =>{
                     {/* Floating Card – Join Community */}
                     <div className="hero-card card-community">
                         <div className="hero-card-icon-wrap">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff6b00" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff6b00" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
                         </div>
                         <div className="hero-card-body">
                             <p className="hero-card-title">Join Community</p>
                             <div className="hero-card-avatars-row">
-                                <div className="hero-card-avatar-sm" style={{background:'#f4a261'}} />
-                                <div className="hero-card-avatar-sm" style={{background:'#2a9d8f'}} />
-                                <div className="hero-card-avatar-sm" style={{background:'#e76f51'}} />
-                                <div className="hero-card-avatar-sm" style={{background:'#264653'}} />
+                                <div className="hero-card-avatar-sm" style={{ background: '#f4a261' }} />
+                                <div className="hero-card-avatar-sm" style={{ background: '#2a9d8f' }} />
+                                <div className="hero-card-avatar-sm" style={{ background: '#e76f51' }} />
+                                <div className="hero-card-avatar-sm" style={{ background: '#264653' }} />
                                 <div className="hero-card-avatar-count">+120</div>
                             </div>
                         </div>
@@ -274,9 +298,52 @@ const gettopblogs = async() =>{
                 </div>
             </section>
 
+             {/* ─── CATEGORIES TRAINS ────────────────────────────────────── */}
+            {(() => {
+                const categories = [
+                    "Technology", "Artificial Intelligence", "Design",
+                    "Business", "Science", "Health & Wellness",
+                    "Finance", "Travel", "Food",
+                    "Sports", "Photography", "Music",
+                    "Education", "Environment", "Politics",
+                    "Culture", "Gaming", "Movies",
+                ];
+                const row1 = categories.slice(0, 9);
+                const row2 = categories.slice(9);
+                return (
+                    <section className="cat-section">
+                        <div className="cat-heading-row">
+                            <h2 className="cat-heading">Discover Categories</h2>
+                        </div>
+                        {/* Row 1 — left to right */}
+                        <div className="cat-track-wrapper" onMouseEnter={e => e.currentTarget.querySelector('.cat-track').style.animationPlayState = 'paused'} onMouseLeave={e => e.currentTarget.querySelector('.cat-track').style.animationPlayState = 'running'}>
+                            <div className="cat-track cat-track-ltr">
+                                {[...row1, ...row1, ...row1].map((cat, i) => (
+                                    <Link key={`r1-${i}`} to={`/search?category=${encodeURIComponent(cat)}`} className="cat-pill">
+                                        <span className="cat-label">{cat}</span>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Row 2 — right to left */}
+                        <div className="cat-track-wrapper" onMouseEnter={e => e.currentTarget.querySelector('.cat-track').style.animationPlayState = 'paused'} onMouseLeave={e => e.currentTarget.querySelector('.cat-track').style.animationPlayState = 'running'}>
+                            <div className="cat-track cat-track-rtl">
+                                {[...row2, ...row2, ...row2].map((cat, i) => (
+                                    <Link key={`r2-${i}`} to={`/search?category=${encodeURIComponent(cat)}`} className="cat-pill">
+                                        <span className="cat-label">{cat}</span>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+                );
+            })()}
+
+
             {/* ─── CURRENTLY TRENDING ─────────────────────────────────── */}
             {topblogs && topblogs.length > 0 && (
-                <section className="trending-section">
+                <section ref={trendingRef} className={`trending-section ${trendingInView ? 'in-view' : ''}`}>
                     <div className="trending-header">
                         <h2 className="trending-main-title">Currently Trending</h2>
                         <Link to="/search" className="trending-browse-btn">Browse more</Link>
@@ -295,20 +362,20 @@ const gettopblogs = async() =>{
                                         ) : (
                                             <div className="trending-img-fallback">
                                                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="1.5">
-                                                    <path d="M4 19.5A2.5 2.5 0 0 1 6 17h12v3H6a2.5 2.5 0 0 1-2.5-2.5z"/>
-                                                    <path d="M6 2c0 .6-.4 1-1 1s-1-.4-1-1 .4-1 1-1 1 .4 1 1zM18 2c0 .6-.4 1-1 1s-1-.4-1-1 .4-1 1-1 1 .4 1 1z"/>
-                                                    <path d="M4 6v10.5M18 6v11M6 6h12V2H6v4z"/>
+                                                    <path d="M4 19.5A2.5 2.5 0 0 1 6 17h12v3H6a2.5 2.5 0 0 1-2.5-2.5z" />
+                                                    <path d="M6 2c0 .6-.4 1-1 1s-1-.4-1-1 .4-1 1-1 1 .4 1 1zM18 2c0 .6-.4 1-1 1s-1-.4-1-1 .4-1 1-1 1 .4 1 1z" />
+                                                    <path d="M4 6v10.5M18 6v11M6 6h12V2H6v4z" />
                                                 </svg>
                                             </div>
                                         )}
                                     </div>
-                                    
+
                                     <div className="trending-meta">
                                         <span>{formatDate(blog)}</span>
                                         <span className="trending-meta-dot">•</span>
                                         <span>{blog.comments?.length || 0} {blog.comments?.length === 1 ? "Comment" : "Comments"}</span>
                                     </div>
-                                    
+
                                     <h3 className="trending-title">{blog.title}</h3>
                                 </Link>
                             ))}
@@ -316,23 +383,8 @@ const gettopblogs = async() =>{
                     </div>
                 </section>
             )}
-<br />
-<br />
-<br />
-<br />
-<br />
-<br />
-<br />
-<br />
-<br />
-<br />
-<br />
-<br />
-<br />
-<br />
-<br />
-<br />
-<br />
+
+           
             {/* ─── BLOG FEED ─────────────────────────────────────────── */}
             <div className="main">
                 {blogs.map((blog) => (
