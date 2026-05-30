@@ -719,11 +719,11 @@
 
 @media screen and (max-width: 1024px) {
   .trending-section {
-    padding: 50px 0px;
+    padding: 10px 0px;
   }
 
   .trending-header {
-    margin-bottom: 90px;
+    margin-bottom: 30px;
     padding: 0px 6vw;
   }
 
