@@ -761,6 +761,9 @@
   .trending-title {
     font-size: 1.15rem;
   }
+  .trending-browse-btn{
+    border-radius: 0px;
+  }
 }
 
 @media screen and (max-width: 480px) {
