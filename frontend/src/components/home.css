@@ -677,10 +677,18 @@
 }
 
 .trending-track-wrapper {
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   position: relative;
   width: 100%;
   padding: 0 4vw; /* keep it aligned with header if needed, but marquee usually spans full width */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+  cursor: grab;
+}
+
+.trending-track-wrapper::-webkit-scrollbar {
+  display: none;
 }
 
 .trending-track {

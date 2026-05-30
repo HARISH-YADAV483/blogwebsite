@@ -298,7 +298,7 @@ function Home() {
                 </div>
             </section>
 
-             {/* ─── CATEGORIES TRAINS ────────────────────────────────────── */}
+            {/* ─── CATEGORIES TRAINS ────────────────────────────────────── */}
             {(() => {
                 const categories = [
                     "Technology", "Artificial Intelligence", "Design",
@@ -341,7 +341,7 @@ function Home() {
             })()}
 
 
-            {/* ─── CURRENTLY TRENDING ─────────────────────────────────── */}
+
             {topblogs && topblogs.length > 0 && (
                 <section ref={trendingRef} className={`trending-section ${trendingInView ? 'in-view' : ''}`}>
                     <div className="trending-header">
@@ -350,40 +350,41 @@ function Home() {
                     </div>
 
                     <div className="trending-container">
-                        <div 
+                        <div
                             className="trending-track-wrapper"
-                            onMouseEnter={e => e.currentTarget.querySelector('.trending-track').style.animationPlayState = 'paused'} 
+                            onMouseEnter={e => e.currentTarget.querySelector('.trending-track').style.animationPlayState = 'paused'}
                             onMouseLeave={e => e.currentTarget.querySelector('.trending-track').style.animationPlayState = 'running'}
                         >
                             <div className="trending-track">
                                 {[...topblogs.slice(0, 10), ...topblogs.slice(0, 10)].map((blog, idx) => (
                                     <Link key={`${blog._id}-${idx}`} to={`/blog/${blog._id}`} className="trending-card">
-                                    <div className="trending-img-wrapper">
-                                        {blog.category && (
-                                            <span className="trending-badge">{blog.category}</span>
-                                        )}
-                                        {blog.image ? (
-                                            <img src={blog.image} alt={blog.title} className="trending-img" />
-                                        ) : (
-                                            <div className="trending-img-fallback">
-                                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="1.5">
-                                                    <path d="M4 19.5A2.5 2.5 0 0 1 6 17h12v3H6a2.5 2.5 0 0 1-2.5-2.5z" />
-                                                    <path d="M6 2c0 .6-.4 1-1 1s-1-.4-1-1 .4-1 1-1 1 .4 1 1zM18 2c0 .6-.4 1-1 1s-1-.4-1-1 .4-1 1-1 1 .4 1 1z" />
-                                                    <path d="M4 6v10.5M18 6v11M6 6h12V2H6v4z" />
-                                                </svg>
-                                            </div>
-                                        )}
-                                    </div>
+                                        <div className="trending-img-wrapper">
+                                            {blog.category && (
+                                                <span className="trending-badge">{blog.category}</span>
+                                            )}
+                                            {blog.image ? (
+                                                <img src={blog.image} alt={blog.title} className="trending-img" />
+                                            ) : (
+                                                <div className="trending-img-fallback">
+                                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="1.5">
+                                                        <path d="M4 19.5A2.5 2.5 0 0 1 6 17h12v3H6a2.5 2.5 0 0 1-2.5-2.5z" />
+                                                        <path d="M6 2c0 .6-.4 1-1 1s-1-.4-1-1 .4-1 1-1 1 .4 1 1zM18 2c0 .6-.4 1-1 1s-1-.4-1-1 .4-1 1-1 1 .4 1 1z" />
+                                                        <path d="M4 6v10.5M18 6v11M6 6h12V2H6v4z" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </div>
 
-                                    <div className="trending-meta">
-                                        <span>{formatDate(blog)}</span>
-                                        <span className="trending-meta-dot">•</span>
-                                        <span>{blog.comments?.length || 0} {blog.comments?.length === 1 ? "Comment" : "Comments"}</span>
-                                    </div>
+                                        <div className="trending-meta">
+                                            <span>{formatDate(blog)}</span>
+                                            <span className="trending-meta-dot">•</span>
+                                            <span>{blog.comments?.length || 0} {blog.comments?.length === 1 ? "Comment" : "Comments"}</span>
+                                        </div>
 
-                                    <h3 className="trending-title">{blog.title}</h3>
-                                </Link>
-                            ))}
+                                        <h3 className="trending-title">{blog.title}</h3>
+                                    </Link>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -461,7 +462,7 @@ function Home() {
                                     <div className="vblog-footer">
                                         <span className="vblog-likes">
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="#ff6b00" stroke="none">
-                                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                                             </svg>
                                             {blog.likes || 0}
                                         </span>
