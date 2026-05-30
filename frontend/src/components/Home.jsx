@@ -350,9 +350,14 @@ function Home() {
                     </div>
 
                     <div className="trending-container">
-                        <div className="trending-grid">
-                            {topblogs.slice(0, 3).map((blog) => (
-                                <Link key={blog._id} to={`/blog/${blog._id}`} className="trending-card">
+                        <div 
+                            className="trending-track-wrapper"
+                            onMouseEnter={e => e.currentTarget.querySelector('.trending-track').style.animationPlayState = 'paused'} 
+                            onMouseLeave={e => e.currentTarget.querySelector('.trending-track').style.animationPlayState = 'running'}
+                        >
+                            <div className="trending-track">
+                                {[...topblogs.slice(0, 10), ...topblogs.slice(0, 10)].map((blog, idx) => (
+                                    <Link key={`${blog._id}-${idx}`} to={`/blog/${blog._id}`} className="trending-card">
                                     <div className="trending-img-wrapper">
                                         {blog.category && (
                                             <span className="trending-badge">{blog.category}</span>

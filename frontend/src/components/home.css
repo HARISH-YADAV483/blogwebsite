@@ -654,7 +654,7 @@
   border: 2px solid #ff6b00;
   font-size: 0.95rem;
   font-weight: 600;
-
+  box-shadow: 0 2px 12px rgba(223, 110, 29, 0.6), 0 1px 4px rgba(0, 0, 0, 0.04);
   border-radius: 0px;
   text-decoration: none;
   opacity: 0;
@@ -672,16 +672,29 @@
 .trending-container {
   position: relative;
   background: transparent;
-  /* vibrant warm yellow/orange */
-  border-radius: 0px;
-  padding: 70px 40px 40px 40px;
+  padding: 0;
   margin-top: 40px;
 }
 
-.trending-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.trending-track-wrapper {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  padding: 0 4vw; /* keep it aligned with header if needed, but marquee usually spans full width */
+}
+
+.trending-track {
+  display: flex;
+  width: max-content;
   gap: 32px;
+  padding-top: 130px; /* space for popping images */
+  padding-bottom: 20px;
+  animation: train-scroll 120s linear infinite;
+}
+
+@keyframes train-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(calc(-50% - 16px)); } /* 16px is half the 32px gap */
 }
 
 /* Card Styling */
@@ -690,8 +703,10 @@
   flex-direction: column;
   text-decoration: none;
   color: inherit;
+  width: 320px;
+  flex-shrink: 0;
   opacity: 0;
-  transform: translateY(50px);
+  transform: translateY(30px);
   transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -709,18 +724,6 @@
 .trending-section.in-view .trending-card {
   opacity: 1;
   transform: translateY(0);
-}
-
-.trending-section.in-view .trending-card:nth-child(1) {
-  transition-delay: 0.1s;
-}
-
-.trending-section.in-view .trending-card:nth-child(2) {
-  transition-delay: 0.25s;
-}
-
-.trending-section.in-view .trending-card:nth-child(3) {
-  transition-delay: 0.4s;
 }
 
 .trending-img-wrapper {
@@ -810,38 +813,11 @@
     padding: 0px 6vw;
   }
 
-  .trending-container {
-    padding: 20px 20px 40px 20px;
-    /* Reduced top padding since grid has padding-top */
-    margin-top: 0px;
-    border-radius: 0px;
-    background-color: transparent;
-  }
-
-  .trending-grid {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    gap: 24px;
-    padding-top: 130px;
-    /* Padding inside the scroll container holds the overlapping image perfectly */
-    padding-bottom: 16px;
-    scrollbar-width: none;
-    /* Hide scrollbar for standard Firefox */
-  }
-
-  .trending-grid::-webkit-scrollbar {
-    display: none;
-    /* Hide scrollbar for Chrome/Safari */
-  }
-
   .trending-card {
-    flex: 0 0 280px;
-    scroll-snap-align: start;
+    width: 280px;
   }
 
   .trending-img-wrapper {
-    margin-top: -120px;
     aspect-ratio: 16 / 10;
   }
 
@@ -865,23 +841,8 @@
     padding: 0px 5vw;
   }
 
-  .trending-container {
-    padding: 10px 16px 10px 16px;
-    margin-top: 0px;
-    background-color: transparent;
-  }
-
-  .trending-grid {
-    padding-top: 100px;
-    /* Matching smaller offset on tiny screens */
-  }
-
   .trending-card {
-    flex: 0 0 240px;
-  }
-
-  .trending-img-wrapper {
-    margin-top: -90px;
+    width: 240px;
   }
 
   .trending-title {
@@ -1094,11 +1055,11 @@
   flex-direction: column;
   background: #ffffff;
   border: 1px solid #ebebeb;
-  border-radius: 16px;
+  border-radius: 0px;
   overflow: hidden;
   text-decoration: none;
   color: inherit;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.6), 0 1px 4px rgba(0, 0, 0, 0.04);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
               box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
               border-color 0.3s ease;
