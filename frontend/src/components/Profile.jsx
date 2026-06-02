@@ -54,6 +54,7 @@ function Profile() {
     const [otpSent, setOtpSent] = useState(false);
     const [loadingOtp, setLoadingOtp] = useState(false);
     const [loadingSave, setLoadingSave] = useState(false);
+    const [isPremium, setisPremium] = useState(false);
     const [formData, setFormData] = useState({
         username: "",
         dob: "",
@@ -110,7 +111,28 @@ function Profile() {
             [e.target.name]: e.target.value
         });
     };
+const gopremium = async()=>{
 
+    const res = await axios.post(`${API_URL}/gopremium`,{userId})
+    .then(res=>{
+        if(res.data.success){
+            setisPremium(true);
+            alert("got premium");
+        
+        }
+    else{
+        alert("already premium");
+        setisPremium(true);
+
+    } })
+    .catch(err =>{
+            console.log(err)
+            alert("unable to get premium");
+
+    })
+    
+
+}   
     const changedetails = async (e) => {
         e.preventDefault();
         try {
@@ -358,6 +380,12 @@ function Profile() {
                     >
                         <Shield /> Password & Security
                     </button>
+                    <button 
+                        className={`profile-sidebar-item ${activeTab === 'premium' ? 'active' : ''}`}
+                        onClick={() => { setActiveTab('premium'); setDrawerOpen(false); }}
+                    >
+                        <Shield /> {isPremium ? "earning and transictions" : "Go Premium"}
+                    </button>
                     
                     <div style={{ flex: 1 }}></div>
                     
@@ -543,6 +571,15 @@ function Profile() {
                             <span className="profile-section-subtitle">Your bookmarked and saved reads</span>
                         </div>
                         {renderBlogList(saved, true)}
+                    </>
+                )}
+                {activeTab === 'premium' && (
+                    <>
+                        <div className="profile-section-title">
+                            Premium
+                            <span className="profile-section-subtitle">Your premium</span>
+                        </div>
+                       <button onClick={gopremium}>go premium</button>
                     </>
                 )}
 

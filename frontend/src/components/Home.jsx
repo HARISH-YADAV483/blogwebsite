@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import birdImg from '../assets/bird.png';
+import moneyImg from '../assets/image.png';
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios'
 import './home.css'
@@ -339,8 +340,7 @@ function Home() {
                     </section>
                 );
             })()}
-
-
+      
 
             {topblogs && topblogs.length > 0 && (
                 <section ref={trendingRef} className={`trending-section ${trendingInView ? 'in-view' : ''}`}>

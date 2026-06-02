@@ -1,6 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
-   HERO SECTION
-   ═══════════════════════════════════════════════════════════ */
+
 
 .hero-section {
   position: relative;
@@ -807,9 +805,6 @@
   overflow: hidden;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   CURRENTLY TRENDING RESPONSIVE Mechanics
-   ═══════════════════════════════════════════════════════════ */
 
 @media screen and (max-width: 1024px) {
   .trending-section {
@@ -991,6 +986,9 @@
   .cat-section {
     padding: 24px 0 32px;
   }
+  .vblog-subtitle{
+    display: none !important;
+  }
 
   .cat-pill {
     padding: 8px 14px;
@@ -1062,12 +1060,12 @@
   display: flex;
   flex-direction: column;
   background: #ffffff;
-  border: 1px solid #ebebeb;
+  /* border: 1px solid #ebebeb; */
   border-radius: 0px;
   overflow: hidden;
   text-decoration: none;
   color: inherit;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.6), 0 1px 4px rgba(0, 0, 0, 0.04);
+  /* box-shadow: 0 2px 2px rgba(0, 0, 0, 0.6), 0 1px 4px rgba(0, 0, 0, 0.04); */
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
               box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
               border-color 0.3s ease;
@@ -1369,8 +1367,15 @@
     font-size: 1rem;
   }
 
+  .vblog-content-preview {
+    display: none;
+  }
+
   .vblogs-header {
     margin-bottom: 36px;
+  }
+  .vblog-subtitle{
+    display: none !important;
   }
 }
 
@@ -1403,6 +1408,7 @@
 
   .vblog-card-title {
     font-size: 1rem;
+
   }
 
   .vblogs-pagination {
@@ -1426,9 +1432,7 @@
   }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   FOOTER
-   ═══════════════════════════════════════════════════════════ */
+
 
 .home-footer {
   background: #252627;

@@ -45,7 +45,9 @@ const UserSchema = new mongoose.Schema({
     dob: String,
     name: String,
     phone: String,
-    bc: Number
+    bc: Number,
+    isPremium: Boolean
+
 });
 const User = mongoose.model("User", UserSchema);
 
@@ -1861,6 +1863,33 @@ res.json({
 }
 
 })
+
+
+//premium
+app.post("/gopremium",async (req,res)=>{
+const {userId} = req.body;
+const user = await User.findById(userId);
+
+if(user.isPremium){
+    return res.json({
+        success : false,
+        message : "already premium"
+    })}
+
+    user.isPremium = true;
+    await user.save();
+   
+    res.json({
+        success : true,
+        message : "premium user"
+    })
+}
+
+
+
+
+)
+
 
 const PORT = process.env.PORT || 5003;
 server.listen(PORT, () => {
