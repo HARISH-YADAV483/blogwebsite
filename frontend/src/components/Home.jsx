@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import birdImg from '../assets/bird.png';
-import moneyImg from '../assets/image.png';
+import earnmoney from '../assets/earnmoney.png';
+import './earnmoney.css';
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios'
 import './home.css'
@@ -389,6 +390,71 @@ function Home() {
                     </div>
                 </section>
             )}
+
+            {/* ─── EARN MONEY SECTION ─────────────────────────────── */}
+            <section className="earn-section">
+                {/* Decorative floating orbs */}
+                <div className="earn-orb earn-orb-1" />
+                <div className="earn-orb earn-orb-2" />
+                <div className="earn-orb earn-orb-3" />
+
+                <div className="earn-container">
+                    {/* Left — Image */}
+                    <div className="earn-image-col">
+                        <div className="earn-image-wrapper">
+                            <img src={earnmoney} alt="Earn money with BlogCHIT" className="earn-hero-img" />
+                            <div className="earn-image-glow" />
+                        </div>
+                    </div>
+
+                    {/* Right — Content */}
+                    <div className="earn-content-col">
+                        <span className="earn-eyebrow">💰 MONETIZE YOUR WRITING</span>
+                        <h2 className="earn-title">
+                            Earn Money with <span className="earn-highlight">BlogCHIT</span>
+                        </h2>
+                        <p className="earn-desc">
+                            Turn your passion for writing into a steady income stream. Start earning from day one.
+                        </p>
+
+                        <div className="earn-steps">
+                            <div className="earn-step-card">
+                                <div className="earn-step-num">1</div>
+                                <div className="earn-step-info">
+                                    <h4>Register</h4>
+                                    <p>Create your free account in 10 seconds.</p>
+                                </div>
+                            </div>
+                            <div className="earn-step-card">
+                                <div className="earn-step-num">2</div>
+                                <div className="earn-step-info">
+                                    <h4>Publish</h4>
+                                    <p>Share knowledge & get paid per view.</p>
+                                </div>
+                            </div>
+                            <div className="earn-step-card">
+                                <div className="earn-step-num">3</div>
+                                <div className="earn-step-info">
+                                    <h4>Earn</h4>
+                                    <p>Up to ₹500 per 1,000 views.</p>
+                                </div>
+                            </div>
+                            <div className="earn-step-card">
+                                <div className="earn-step-num">4</div>
+                                <div className="earn-step-info">
+                                    <h4>Withdraw</h4>
+                                    <p>Instant earnings via UPI.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <Link to="/profile" className="earn-cta-btn">
+                            Read Now
+                            <span className="earn-cta-arrow">→</span>
+                        </Link>
+                    </div>
+                </div>
+            </section>
 
             {/* ─── VERIFIED BLOGS GRID ─────────────────────────────── */}
             <section ref={verifiedRef} className={`vblogs-section ${verifiedInView ? 'vblogs-in-view' : ''}`}>

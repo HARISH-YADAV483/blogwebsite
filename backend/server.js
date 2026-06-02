@@ -1883,12 +1883,8 @@ if(user.isPremium){
         success : true,
         message : "premium user"
     })
-}
+})
 
-
-
-
-)
 
 
 const PORT = process.env.PORT || 5003;
