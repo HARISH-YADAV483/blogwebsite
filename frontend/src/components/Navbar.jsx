@@ -21,10 +21,28 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
     const currentPath = location.pathname;
     const [nottiOpen, setNottiOpen] = useState(false);
     const nottiRef = useRef(null);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const mobileMenuRef = useRef(null);
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 20) {
+                setScrolled(true);
+            } else {
+                setScrolled(false);
+            }
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const isHomeTop = currentPath === '/' && !scrolled;
 
     // Close dropdown when route changes
     useEffect(() => {
         setNottiOpen(false);
+        setMobileMenuOpen(false);
     }, [location.pathname]);
 
     // Close dropdown on click outside
@@ -33,12 +51,15 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
             if (nottiRef.current && !nottiRef.current.contains(e.target)) {
                 setNottiOpen(false);
             }
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
+                setMobileMenuOpen(false);
+            }
         };
-        if (nottiOpen) {
+        if (nottiOpen || mobileMenuOpen) {
             document.addEventListener('mousedown', handleClickOutside);
         }
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [nottiOpen]);
+    }, [nottiOpen, mobileMenuOpen]);
     useEffect(() => {
         if (token) {
             const userData = JSON.parse(localStorage.getItem("user") || "{}");
@@ -109,23 +130,47 @@ function Navbar({ unreadCount, setUnreadCount, unreadMsgCount, setUnreadMsgCount
 
     return (<>
         {/* Mobile Top Navbar (< 1024px) */}
-        <div className="mobile-top-navbar">
+        <div className={`mobile-top-navbar ${isHomeTop ? 'is-transparent' : ''}`}>
             <Link to="/">
                 <img src={blogchitLogo} alt="BlogChit" className="navbar-logo" />
             </Link>
-            <div className="navbar-actions">
-                <Link to="/notti" className="nav-action-btn">
-                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <div className="navbar-actions" ref={mobileMenuRef}>
+                <button 
+                    className="nav-action-btn"
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                >
+                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
                     {unreadCount > 0 && <span className="nav-badge">{unreadCount}</span>}
-                </Link>
-                <Link to="/write" className="nav-action-btn">
-                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                </Link>
+                </button>
+
+                {mobileMenuOpen && (
+                    <div className="mobile-menu-dropdown">
+                        <Link to="/notti" className="mobile-menu-item" onClick={() => setMobileMenuOpen(false)}>
+                            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span>Notifications</span>
+                            {unreadCount > 0 && <span className="mobile-menu-badge">{unreadCount}</span>}
+                        </Link>
+                        <Link to="/write" className="mobile-menu-item" onClick={() => setMobileMenuOpen(false)}>
+                            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                            <span>Write Blog</span>
+                        </Link>
+                    </div>
+                )}
             </div>
         </div>
 
         {/* Desktop Navbar (>= 1024px) */}
-        <nav className="desktop-navbar" id="desktop-navbar">
+        <nav className={`desktop-navbar ${isHomeTop ? 'is-transparent' : ''}`} id="desktop-navbar">
             <div className="desktop-navbar__inner">
                 {/* Logo — left side */}
                 <Link to="/" className="desktop-navbar__logo-link">

@@ -7,6 +7,12 @@
   justify-content: space-between;
   min-height: 92vh;
   padding: 60px 7vw 40px;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('../assets/back.png');
+background-size: cover;
+background-position: center;
+background-repeat: no-repeat;
+background-attachment: fixed;
+
 
   overflow: hidden;
   /* background: linear-gradient(160deg, #ffffff 0%, #fff7f0 35%, #ffffff 60%, #ffffff 100%); */
