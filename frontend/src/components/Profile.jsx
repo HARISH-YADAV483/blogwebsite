@@ -88,6 +88,7 @@ function Profile() {
                 setemail(res.data.email || "");
                 setphone(res.data.phone || "");
                 setusername(res.data.username || "");
+                setisPremium(res.data.isPremium || false);
                 setFormData({
                     username: res.data.username || "",
                     dob: res.data.dob || "",
@@ -111,28 +112,75 @@ function Profile() {
             [e.target.name]: e.target.value
         });
     };
-const gopremium = async()=>{
+    const loadRazorpay = () => {
+        return new Promise((resolve) => {
+            const script = document.createElement("script");
+            script.src = "https://checkout.razorpay.com/v1/checkout.js";
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+        });
+    };
 
-    const res = await axios.post(`${API_URL}/gopremium`,{userId})
-    .then(res=>{
-        if(res.data.success){
-            setisPremium(true);
-            alert("got premium");
-        
+    const gopremium = async () => {
+        try {
+            const res = await window.confirm("Do you want to proceed to payment of Rs 9?");
+            if (!res) return;
+
+            const scriptLoaded = await loadRazorpay();
+            if (!scriptLoaded) {
+                alert("Failed to load payment gateway. Please check your internet connection.");
+                return;
+            }
+
+            // Create Order
+            const orderRes = await axios.post(`${API_URL}/create-order`, { userId });
+            if (!orderRes.data.success) {
+                alert(orderRes.data.message || "Could not create order");
+                return;
+            }
+
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder', 
+                amount: orderRes.data.order.amount,
+                currency: "INR",
+                name: "blogCHIT",
+                description: "Lifetime Premium Subscription",
+                image: "https://your-logo-url.png",
+                order_id: orderRes.data.order.id,
+                handler: async function (response) {
+                    const verifyRes = await axios.post(`${API_URL}/verify-payment`, {
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_signature: response.razorpay_signature,
+                        userId
+                    });
+
+                    if (verifyRes.data.success) {
+                        setisPremium(true);
+                        alert("Congratulations! You are now a premium user.");
+                    } else {
+                        alert("Payment verification failed. Please contact support.");
+                    }
+                },
+                prefill: {
+                    name: username,
+                    email: email,
+                    contact: phone
+                },
+                theme: {
+                    color: "#df860a"
+                }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.open();
+
+        } catch (err) {
+            console.error(err);
+            alert("Unable to process payment right now.");
         }
-    else{
-        alert("already premium");
-        setisPremium(true);
-
-    } })
-    .catch(err =>{
-            console.log(err)
-            alert("unable to get premium");
-
-    })
-    
-
-}   
+    };
     const changedetails = async (e) => {
         e.preventDefault();
         try {
@@ -334,7 +382,10 @@ const gopremium = async()=>{
                 <button className="profile-menu-toggle" onClick={() => setDrawerOpen(true)}>
                     <Menu />
                 </button>
-                <span className="profile-mobile-topbar-title">@{username}</span>
+                <span className="profile-mobile-topbar-title">
+                    @{username}
+                    {isPremium && <CheckCircle size={16} fill="#ffd700" color="#8a2be2" style={{ verticalAlign: 'middle', marginLeft: '4px' }} />}
+                </span>
                 <div style={{ width: 24 }}></div> {/* Spacer for centering */}
             </div>
 
@@ -384,7 +435,7 @@ const gopremium = async()=>{
                         className={`profile-sidebar-item ${activeTab === 'premium' ? 'active' : ''}`}
                         onClick={() => { setActiveTab('premium'); setDrawerOpen(false); }}
                     >
-                        <Shield /> {isPremium ? "earning and transictions" : "Go Premium"}
+                        <Shield /> {isPremium ? "Earnings and history" : "Go Premium"}
                     </button>
                     
                     <div style={{ flex: 1 }}></div>
@@ -420,7 +471,10 @@ const gopremium = async()=>{
                     </div>
                     <div className="profile-info">
                         <div className="profile-username-row">
-                            <h1 className="profile-username">@{username}</h1>
+                            <h1 className="profile-username">
+                                @{username}
+                                {isPremium && <CheckCircle size={24} fill="#ffd700" color="#8a2be2" style={{ verticalAlign: 'middle', marginLeft: '6px' }} />}
+                            </h1>
                             <div className="profile-bc-badge">
                                 <span>BC</span>
                                 <span>{bc}</span>
@@ -576,10 +630,18 @@ const gopremium = async()=>{
                 {activeTab === 'premium' && (
                     <>
                         <div className="profile-section-title">
-                            Premium
-                            <span className="profile-section-subtitle">Your premium</span>
+                            {isPremium ? "Earnings and history" : "Premium"}
+                            <span className="profile-section-subtitle">
+                                {isPremium ? "View your earnings and transaction history" : "Upgrade to premium for lifetime benefits"}
+                            </span>
                         </div>
-                       <button onClick={gopremium}>go premium</button>
+                        {isPremium ? (
+                            <div style={{ background: '#fafafa', padding: '20px', borderRadius: '12px' }}>
+                                <p style={{ margin: 0, color: '#444' }}>Earnings and transaction history will appear here.</p>
+                            </div>
+                        ) : (
+                            <button className="profile-btn" onClick={gopremium}>Buy Premium for Rs 9</button>
+                        )}
                     </>
                 )}
 

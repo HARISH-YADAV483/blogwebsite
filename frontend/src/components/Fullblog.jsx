@@ -1,210 +1,356 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
-import "./writeblog.css";
+import "./fullblog.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+/* Utility: estimate reading time */
+function readingTime(html = "") {
+    const text = html.replace(/<[^>]+>/g, "");
+    const words = text.trim().split(/\s+/).length;
+    return Math.max(1, Math.round(words / 200));
+}
+
+/* Utility: first letter of author name for avatar */
+function getInitial(name = "") {
+    return name.trim().charAt(0).toUpperCase() || "?";
+}
+
 function Fullblog() {
     const { id } = useParams();
-    const userId = JSON.parse(localStorage.getItem("user") || "{}").userId;
+    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const userId = storedUser.userId;
+    const currentUsername = storedUser.username || storedUser.name || "You";
+
     const [blog, setBlog] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [comment, setcomment] = useState("");
-    const [comments, setcomments] = useState([]);
-    const name = JSON.parse(localStorage.getItem("user") || "{}").username
+    const [comment, setComment] = useState("");
+    const [comments, setComments] = useState([]);
+    const [liked, setLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(0);
+    const [saved, setSaved] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [copied, setCopied] = useState(false);
 
+    /* Fetch blog */
     const fetchBlog = async () => {
         try {
             setLoading(true);
-            const url = userId ? `${API_URL}/blogs/${id}?userId=${userId}` : `${API_URL}/blogs/${id}`;
+            const url = userId
+                ? `${API_URL}/blogs/${id}?userId=${userId}`
+                : `${API_URL}/blogs/${id}`;
             const res = await axios.get(url);
             setBlog(res.data);
-            setcomments(res.data.comments || []);
+            setComments(res.data.comments || []);
+            setLiked(res.data.liked || false);
+            setLikeCount(res.data.likesCount ?? res.data.likes ?? 0);
+            setSaved(res.data.saved || false);
         } catch (err) {
-            console.log(err);
+            console.error(err);
             setBlog(null);
-            alert(err?.response?.data?.message || "Failed to load blog");
         } finally {
             setLoading(false);
         }
     };
-    const handlecomments = async () => {
-        await axios.post(`${API_URL}/comments`, { comment, id, userId })
-            .then(res => {
-                setcomments(res.data.comments);
-                setcomment("");
-            })
-            .catch(err => {
-                console.error(err);
-                console.log("error while getting comments...")
-            })
-    }
 
     useEffect(() => {
         fetchBlog();
+        window.scrollTo({ top: 0 });
     }, [id]);
 
+    /* Like handler */
+    const handleLike = async () => {
+        if (!userId) return;
+        try {
+            setLiked((prev) => !prev);
+            setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
+            await axios.post(`${API_URL}/blogs/${id}/like`, { userId });
+        } catch (err) {
+            /* Revert on error */
+            setLiked((prev) => !prev);
+            setLikeCount((prev) => (liked ? prev + 1 : prev - 1));
+            console.error(err);
+        }
+    };
+
+    /* Save / Bookmark handler */
+    const handleSave = async () => {
+        if (!userId) return;
+        const prev = saved;
+        setSaved(!prev);
+        try {
+            await axios.post(`${API_URL}/blogs/${id}/save`, { userId });
+        } catch (err) {
+            setSaved(prev); // revert on error
+            console.error(err);
+        }
+    };
+
+    /* Comment submit */
+    const handleComment = async () => {
+        if (!comment.trim() || !userId) return;
+        setSubmitting(true);
+        try {
+            const res = await axios.post(`${API_URL}/comments`, {
+                comment: comment.trim(),
+                id,
+                userId,
+            });
+            setComments(res.data.comments || comments);
+            setComment("");
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    /* Share / copy link */
+    const handleShare = async () => {
+        const url = window.location.href;
+        try {
+            await navigator.clipboard.writeText(url);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            /* Fallback */
+        }
+    };
+
+    /* ── Loading state ── */
     if (loading) {
-        return <div>Loading...</div>;
+        return (
+            <div className="fullblog-page">
+                <div className="fullblog-loading">
+                    <div className="fullblog-loading-spinner" />
+                    <p>Loading article…</p>
+                </div>
+            </div>
+        );
     }
 
+    /* ── Error state ── */
     if (!blog) {
-        return <div>Blog not found</div>;
+        return (
+            <div className="fullblog-page">
+                <div className="fullblog-error">
+                    <h2>Article not found</h2>
+                    <p>The blog post you're looking for doesn't exist or was removed.</p>
+                    <Link to="/" style={{ color: "var(--accent)", fontWeight: 600, marginTop: 8, textDecoration: "none" }}>
+                        ← Back to Home
+                    </Link>
+                </div>
+            </div>
+        );
     }
+
+    const mins = readingTime(blog.content);
 
     return (
-        <>
+        <div className="fullblog-page">
 
-            <Link to="/">Back to Home</Link>
-            <h1>Full blog will appear here</h1>
-            <h2> Title : {blog.title}</h2>
-            <hr />
-            <h3> Subtitle : {blog.subtitle}</h3>
-            <hr />
-            <p>
-                <strong>AUTHOR:</strong> {blog.author}
-            </p>
-            <hr />
-            {blog.category && (
-                <div style={{ backgroundColor: "#333", color: "white", padding: "4px 8px", borderRadius: "4px", display: "inline-block", marginBottom: "12px", marginTop: "12px", fontSize: "14px" }}>
-                    {blog.category}
+            {/* ── Back navigation bar ── */}
+            <div className="fullblog-back-bar">
+                <Link to="/" className="fullblog-back-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 12H5" /><path d="m12 19-7-7 7-7" />
+                    </svg>
+                    Back to Home
+                </Link>
+            </div>
+
+            {/* ── Hero Cover Image ── */}
+            {blog.image && (
+                <div className="fullblog-hero">
+                    <img src={blog.image} alt={blog.title} />
+                    <div className="fullblog-hero-overlay" />
                 </div>
             )}
-            <hr />
-            <div 
-                className="blog-content tiptap-editor-content" 
-                dangerouslySetInnerHTML={{ __html: blog.content }}
-            >
-            </div>
 
-            <div className="heart-container" title="Like" onClick={() => like(blog._id)}>
+            {/* ── Article ── */}
+            <article className="fullblog-article">
 
-                <input
-
-                    type="checkbox"
-
-                    className="checkbox"
-
-                    id="Give-It-An-Id"
-
-                />
-
-                <div className="svg-container">
-
-                    <svg
-
-                        viewBox="0 0 24 24"
-
-                        className="svg-outline"
-
-                        xmlns="http://www.w3.org/2000/svg"
-
-                    >
-
-                        <path d="M17.5,1.917a6.4,6.4,0,0,0-5.5,3.3,6.4,6.4,0,0,0-5.5-3.3A6.8,6.8,0,0,0,0,8.967c0,4.547,4.786,9.513,8.8,12.88a4.974,4.974,0,0,0,6.4,0C19.214,18.48,24,13.514,24,8.967A6.8,6.8,0,0,0,17.5,1.917Zm-3.585,18.4a2.973,2.973,0,0,1-3.83,0C4.947,16.006,2,11.87,2,8.967a4.8,4.8,0,0,1,4.5-5.05A4.8,4.8,0,0,1,11,8.967a1,1,0,0,0,2,0,4.8,4.8,0,0,1,4.5-5.05A4.8,4.8,0,0,1,22,8.967C22,11.87,19.053,16.006,13.915,20.313Z" />
-
-                    </svg>
-
-                    <svg
-
-                        viewBox="0 0 24 24"
-
-                        className="svg-filled"
-
-                        xmlns="http://www.w3.org/2000/svg"
-
-                    >
-
-                        <path d="M17.5,1.917a6.4,6.4,0,0,0-5.5,3.3,6.4,6.4,0,0,0-5.5-3.3A6.8,6.8,0,0,0,0,8.967c0,4.547,4.786,9.513,8.8,12.88a4.974,4.974,0,0,0,6.4,0C19.214,18.48,24,13.514,24,8.967A6.8,6.8,0,0,0,17.5,1.917Z" />
-
-                    </svg>
-
-                    <svg
-
-                        className="svg-celebrate"
-
-                        width="100"
-
-                        height="100"
-
-                        xmlns="http://www.w3.org/2000/svg"
-
-                    >
-
-                        <polygon points="10,10 20,20" />
-
-                        <polygon points="10,50 20,50" />
-
-                        <polygon points="20,80 30,70" />
-
-                        <polygon points="90,10 80,20" />
-
-                        <polygon points="90,50 80,50" />
-
-                        <polygon points="80,80 70,70" />
-
-                    </svg>
-
-                </div>
-
-            </div>
-            <div className="comments" style={{ minHeight: "233px", width: "80vw", backgroundColor: "#333", padding: "20px", marginTop: "20px", borderRadius: "10px", overflowY: "auto" }}>
-                <h1 style={{ color: "white", marginBottom: "15px" }}>Comment Box</h1>
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                    {comments.length > 0 ? (
-                        comments.map((c, index) => (
-                            <div key={index} style={{
-                                backgroundColor: "rgba(255, 255, 255, 0.9)",
-                                padding: "12px",
-                                borderRadius: "8px",
-                                color: "#333",
-                                fontSize: "16px",
-                                boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-                            }}>
-                                {c}
-                            </div>
-                        ))
-                    ) : (
-                        <p style={{ color: "#ccc" }}>No comments yet. Be the first to comment!</p>
+                {/* Category + Read time */}
+                <div className="fullblog-meta-row">
+                    {blog.category && (
+                        <span className="fullblog-category-badge">
+                            {blog.category}
+                        </span>
                     )}
+                    <span className="fullblog-read-time">
+                        {mins} min read
+                    </span>
                 </div>
-            </div>
-            <div style={{ marginTop: "15px", display: "flex", gap: "10px" }}>
-                <input
-                    type="text"
-                    value={comment}
-                    placeholder="add your comment here"
-                    style={{
-                        padding: "12px",
-                        borderRadius: "8px",
-                        border: "1px solid #ddd",
-                        flex: 1,
-                        fontSize: "16px"
-                    }}
-                    onChange={(e) => {
-                        setcomment(e.target.value);
-                    }}
+
+                {/* Title */}
+                <h1 className="fullblog-title">{blog.title}</h1>
+
+                {/* Subtitle */}
+                {blog.subtitle && (
+                    <p className="fullblog-subtitle">{blog.subtitle}</p>
+                )}
+
+                {/* Author strip */}
+                <div className="fullblog-author-strip">
+                    <div className="fullblog-author-avatar">
+                        {getInitial(blog.author)}
+                    </div>
+                    <div className="fullblog-author-info">
+                        <span className="fullblog-author-name">{blog.author}</span>
+                        <span className="fullblog-author-date">
+                            {blog.createdAt
+                                ? new Date(blog.createdAt).toLocaleDateString("en-US", {
+                                      year: "numeric", month: "long", day: "numeric"
+                                  })
+                                : "Published"}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Blog body */}
+                <div
+                    className="fullblog-content tiptap-editor-content"
+                    dangerouslySetInnerHTML={{ __html: blog.content }}
                 />
-                <button
-                    onClick={handlecomments}
-                    style={{
-                        padding: "10px 25px",
-                        backgroundColor: "#2ecc71",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        fontWeight: "bold",
-                        transition: "background 0.3s"
-                    }}
-                >
-                    Add
-                </button>
-            </div>
 
-        </>
+                {/* ── Engagement bar ── */}
+                <div className="fullblog-engage-bar">
+                    <div className="fullblog-engage-left">
+                        {/* Like */}
+                        <button
+                            className={`fullblog-like-btn${liked ? " liked" : ""}`}
+                            onClick={handleLike}
+                            title={liked ? "Unlike" : "Like this article"}
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill={liked ? "#ef4444" : "none"} stroke={liked ? "#ef4444" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>
+                            {likeCount > 0 ? likeCount : ""} {liked ? "Liked" : "Like"}
+                        </button>
+
+                        {/* Share / Copy link */}
+                        <button
+                            className="fullblog-share-btn"
+                            onClick={handleShare}
+                            title="Copy link"
+                        >
+                            {copied ? (
+                                <>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                    Copied!
+                                </>
+                            ) : (
+                                <>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                                    </svg>
+                                    Share
+                                </>
+                            )}
+                        </button>
+
+                        {/* Save / Bookmark */}
+                        <button
+                            className={`fullblog-save-btn${saved ? " saved" : ""}`}
+                            onClick={handleSave}
+                            title={saved ? "Remove from saved" : "Save article"}
+                        >
+                            <svg
+                                width="17" height="17"
+                                viewBox="0 0 24 24"
+                                fill={saved ? "currentColor" : "none"}
+                                stroke="currentColor"
+                                strokeWidth="2.1"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                            </svg>
+                            {saved ? "Saved" : "Save"}
+                        </button>
+                    </div>
+                </div>
+            </article>
+
+            {/* ── Comments Section ── */}
+            <section className="fullblog-comments-section">
+                <div className="fullblog-comments-header">
+                    <h2 className="fullblog-comments-title">
+                        Comments
+                        {comments.length > 0 && (
+                            <span className="fullblog-comment-count">{comments.length}</span>
+                        )}
+                    </h2>
+                </div>
+
+                {/* Add comment form */}
+                <div className="fullblog-comment-form">
+                    <div className="fullblog-comment-input-row">
+                        <div className="fullblog-comment-avatar">
+                            {getInitial(currentUsername)}
+                        </div>
+                        <div className="fullblog-comment-input-area">
+                            <textarea
+                                className="fullblog-comment-input"
+                                placeholder="Share your thoughts on this article…"
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                                        handleComment();
+                                    }
+                                }}
+                                rows={3}
+                            />
+                            <div className="fullblog-comment-submit-row">
+                                <button
+                                    className="fullblog-comment-submit"
+                                    onClick={handleComment}
+                                    disabled={!comment.trim() || submitting}
+                                >
+                                    {submitting ? "Posting…" : "Post Comment"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Comments list */}
+                {comments.length > 0 ? (
+                    <div className="fullblog-comments-list">
+                        {comments.map((c, i) => (
+                            <div className="fullblog-comment-card" key={i}>
+                                <div className="fullblog-comment-card-header">
+                                    <div className="fullblog-comment-card-avatar">
+                                        {typeof c === "object" && c.user
+                                            ? getInitial(c.user)
+                                            : String(i + 1)}
+                                    </div>
+                                    <span className="fullblog-comment-card-user">
+                                        {typeof c === "object" && c.user
+                                            ? c.user
+                                            : "Reader"}
+                                    </span>
+                                </div>
+                                <p className="fullblog-comment-card-text">
+                                    {typeof c === "object" ? c.comment || c.text : c}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="fullblog-no-comments">
+                        <div className="no-comments-icon">💬</div>
+                        <p>No comments yet — be the first to share your thoughts!</p>
+                    </div>
+                )}
+            </section>
+        </div>
     );
-
 }
+
 export default Fullblog;

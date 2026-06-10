@@ -175,8 +175,8 @@ function Home() {
     }
 
     return (
-        <>
-            {/* ─── HERO SECTION ─────────────────────────────────────── */}
+        < >
+           
             <section className="hero-section">
 
                 {/* Radial glow blob */}
@@ -346,7 +346,7 @@ function Home() {
             {topblogs && topblogs.length > 0 && (
                 <section ref={trendingRef} className={`trending-section ${trendingInView ? 'in-view' : ''}`}>
                     <div className="trending-header">
-                        <h2 className="trending-main-title">Currently Trending</h2>
+                        <h2 className="trending-main-title"> Trending</h2>
                         <Link to="/search" className="trending-browse-btn">Browse more</Link>
                     </div>
 

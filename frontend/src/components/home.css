@@ -1,5 +1,4 @@
 
-
 .hero-section {
   position: relative;
   display: flex;
@@ -874,6 +873,7 @@ background-attachment: fixed;
 
 .cat-section {
   padding: 48px 0 56px;
+  /* padding-top: 58px !important; */
   /* padding-bottom: 0px !important; */
   padding-top: 0px;
   background: #ffffff;
@@ -888,6 +888,7 @@ background-attachment: fixed;
 .cat-heading-row {
   padding: 0 0vw;
   margin-bottom: 32px;
+  padding-top: 38px;
 }
 
 .cat-heading {

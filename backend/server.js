@@ -5,6 +5,8 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const { Resend } = require("resend");
 const { OAuth2Client } = require("google-auth-library");
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
 const client = new OAuth2Client(
 
     process.env.CLIENT_API_KEY
@@ -46,7 +48,9 @@ const UserSchema = new mongoose.Schema({
     name: String,
     phone: String,
     bc: Number,
-    isPremium: Boolean
+    isPremium: Boolean,
+    premiumDate: Date,
+    razorpayPaymentId: String
 
 });
 const User = mongoose.model("User", UserSchema);
@@ -891,7 +895,8 @@ app.post("/getprofile", async (req, res) => {
             dob: user.dob || "",
             email: user.email || "",
             phone: user.phone || "",
-            bc: computedBc
+            bc: computedBc,
+            isPremium: user.isPremium || false
         });
 
     } catch (error) {
@@ -1865,25 +1870,77 @@ res.json({
 })
 
 
-//premium
-app.post("/gopremium",async (req,res)=>{
-const {userId} = req.body;
-const user = await User.findById(userId);
+// Razorpay Premium Plan Integration
+const razorpayInstance = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder', // Provide fallback for testing
+    key_secret: process.env.RAZORPAY_KEY_SECRET || 'secret_placeholder'
+});
 
-if(user.isPremium){
-    return res.json({
-        success : false,
-        message : "already premium"
-    })}
+app.post("/create-order", async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const user = await User.findById(userId);
 
-    user.isPremium = true;
-    await user.save();
-   
-    res.json({
-        success : true,
-        message : "premium user"
-    })
-})
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+        if (user.isPremium) {
+            return res.json({ success: false, message: "Already premium" });
+        }
+
+        const options = {
+            amount: 9 * 100, // amount in the smallest currency unit (paise) = Rs 9
+            currency: "INR",
+            receipt: `receipt_order_${userId}`
+        };
+
+        const order = await razorpayInstance.orders.create(options);
+        if (!order) return res.status(500).json({ success: false, message: "Some error occurred" });
+
+        res.json({ success: true, order });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+app.post("/verify-payment", async (req, res) => {
+    try {
+        const {
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature,
+            userId
+        } = req.body;
+
+        const body = razorpay_order_id + "|" + razorpay_payment_id;
+
+        const expectedSignature = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || 'secret_placeholder')
+            .update(body.toString())
+            .digest("hex");
+
+        const isAuthentic = expectedSignature === razorpay_signature;
+
+        if (isAuthentic) {
+            const user = await User.findById(userId);
+            if (user) {
+                user.isPremium = true;
+                user.premiumDate = new Date();
+                user.razorpayPaymentId = razorpay_payment_id;
+                await user.save();
+                res.json({ success: true, message: "Payment verified successfully" });
+            } else {
+                res.status(404).json({ success: false, message: "User not found" });
+            }
+        } else {
+            res.status(400).json({ success: false, message: "Invalid Signature" });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
 
 
 
