@@ -1409,6 +1409,26 @@ app.post("/search", async (req, res) => {
     }
 });
 
+// Search blogs by title, subtitle or category
+app.get("/search/blogs", async (req, res) => {
+    try {
+        const { q } = req.query;
+        if (!q || q.trim() === "") return res.json([]);
+        const blogs = await Blog.find({
+            status: "verified",
+            $or: [
+                { title: { $regex: q, $options: "i" } },
+                { subtitle: { $regex: q, $options: "i" } },
+                { category: { $regex: q, $options: "i" } },
+                { author: { $regex: q, $options: "i" } }
+            ]
+        }).limit(20).sort({ _id: -1 });
+        res.json(blogs);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // Get messages between two users
 app.get("/messages/:userId/:chatterId", async (req, res) => {
     try {
